@@ -15,6 +15,13 @@ export default function ResumePage() {
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>('professional')
   const { profile, socialLinks, skills, workExperience, projects, education, certifications, sectionSettings, isLoading, setTheme } = usePortfolioStore()
 
+  // Initialize selectedTheme from profile - must be before any conditional returns
+  useEffect(() => {
+    if (profile?.theme) {
+      setSelectedTheme(profile.theme)
+    }
+  }, [profile])
+
   // Handle loading state
   if (isLoading || !profile || !sectionSettings) {
     return (
@@ -26,13 +33,6 @@ export default function ResumePage() {
       </div>
     )
   }
-
-  // Initialize selectedTheme from profile
-  useEffect(() => {
-    if (profile?.theme) {
-      setSelectedTheme(profile.theme)
-    }
-  }, [profile])
 
   const handleThemeChange = async (theme: ThemeType) => {
     setSelectedTheme(theme)

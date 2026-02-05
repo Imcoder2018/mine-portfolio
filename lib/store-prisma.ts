@@ -283,9 +283,26 @@ export const usePortfolioStore = create<PortfolioStore>()(
 
       // Fetch data from database
       fetchData: async () => {
+        // Don't fetch if already loading
+        const currentState = get()
+        if (currentState.isLoading) return
+        
         set({ isLoading: true, error: null })
+        
+        // Add timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          set({ 
+            isLoading: false, 
+            error: 'Loading timeout - please refresh the page',
+            profile: defaultProfile,
+            sectionSettings: defaultSectionSettings
+          })
+        }, 10000) // 10 second timeout
+        
         try {
           const response = await fetch('/api/portfolio')
+          clearTimeout(timeoutId)
+          
           if (!response.ok) {
             throw new Error('Failed to fetch data')
           }
@@ -303,9 +320,11 @@ export const usePortfolioStore = create<PortfolioStore>()(
             testimonials: data.testimonials || [],
             services: data.services || [],
             sectionSettings: data.sectionSettings || defaultSectionSettings,
-            isLoading: false
+            isLoading: false,
+            error: null
           })
         } catch (error) {
+          clearTimeout(timeoutId)
           console.error('Error fetching data:', error)
           set({ 
             error: 'Failed to load portfolio data',
@@ -329,11 +348,20 @@ export const usePortfolioStore = create<PortfolioStore>()(
 
       setTheme: async (theme) => {
         const currentProfile = get().profile
-        if (!currentProfile) return
+        console.log('setTheme called with:', theme, 'currentProfile:', currentProfile)
+        if (!currentProfile) {
+          console.log('No current profile, returning')
+          return
+        }
         
-        const updatedProfile = { ...currentProfile, theme }
-        await apiCall('updateProfile', updatedProfile)
-        set({ profile: updatedProfile })
+        try {
+          await apiCall('updateTheme', { theme })
+          const updatedProfile = { ...currentProfile, theme }
+          console.log('Updating local profile to:', updatedProfile)
+          set({ profile: updatedProfile })
+        } catch (error) {
+          console.error('Error in setTheme:', error)
+        }
       },
 
       // Social Links

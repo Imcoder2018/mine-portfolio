@@ -76,6 +76,44 @@ export async function updateProfile(data: any) {
   }
 }
 
+// Theme operations (public - no authentication required)
+export async function updateTheme(theme: string) {
+  try {
+    const existing = await prisma.profile.findFirst()
+    
+    if (existing) {
+      return await prisma.profile.update({
+        where: { id: existing.id },
+        data: { theme },
+      })
+    } else {
+      // Create a new profile with default values and the selected theme
+      return await prisma.profile.create({
+        data: {
+          name: 'Portfolio',
+          title: 'Developer',
+          subtitle: '',
+          email: '',
+          phone: '',
+          location: '',
+          bio: '',
+          shortBio: '',
+          profileImage: '',
+          resumeUrl: '',
+          availableForHire: false,
+          yearsOfExperience: 0,
+          projectsCompleted: 0,
+          happyClients: 0,
+          theme,
+        },
+      })
+    }
+  } catch (error) {
+    console.error('Error updating theme:', error)
+    throw error
+  }
+}
+
 // Social links operations
 export async function getSocialLinks() {
   try {

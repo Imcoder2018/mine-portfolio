@@ -1,6 +1,6 @@
 'use client'
 
-import { usePortfolioStore } from '@/lib/store-new'
+import { usePortfolioStore } from '@/lib/store-prisma'
 
 export default function Skills() {
   const { skills, sectionSettings } = usePortfolioStore()

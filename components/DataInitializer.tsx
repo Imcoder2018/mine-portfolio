@@ -1,18 +1,20 @@
 'use client'
 
-import { useEffect } from 'react'
-import { usePortfolioStore } from '@/lib/store-new'
+import { useEffect, useRef } from 'react'
+import { usePortfolioStore } from '@/lib/store-prisma'
 
 // Component to initialize data from database
 export default function DataInitializer() {
-  const { fetchData, profile } = usePortfolioStore()
+  const fetchData = usePortfolioStore((state) => state.fetchData)
+  const hasFetched = useRef(false)
 
   useEffect(() => {
-    // Only fetch data if we don't have it yet
-    if (!profile) {
+    // Only fetch once on mount
+    if (!hasFetched.current) {
+      hasFetched.current = true
       fetchData()
     }
-  }, [fetchData, profile])
+  }, [fetchData])
 
   return null
 }

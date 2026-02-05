@@ -1,5 +1,6 @@
 import { 
   updateProfile, 
+  updateTheme,
   addSocialLink, 
   updateSocialLink, 
   deleteSocialLink,
@@ -34,8 +35,8 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { action, data, id } = body
 
-    // Check admin authentication for write operations
-    if (action !== 'login' && action !== 'checkAuth') {
+    // Check admin authentication for write operations (except theme switching)
+    if (action !== 'login' && action !== 'checkAuth' && action !== 'updateTheme') {
       const isAuthenticated = await checkAdminPassword(data.adminPassword || '')
       if (!isAuthenticated) {
         return Response.json(
@@ -48,6 +49,11 @@ export async function POST(request: Request) {
     let result
 
     switch (action) {
+      // Theme (public operation)
+      case 'updateTheme':
+        result = await updateTheme(data.theme)
+        break
+
       // Profile
       case 'updateProfile':
         result = await updateProfile(data)

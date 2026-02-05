@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePortfolioStore, generateId, SectionSettings } from '@/lib/store'
+import { usePortfolioStore, generateId, SectionSettings } from '@/lib/store-prisma'
 import { Icon, Save, Plus, Trash2, Edit, Eye, EyeOff, LogOut, Settings, User, Briefcase, Code, GraduationCap, Award, MessageSquare, Zap, Globe, Lock } from '@/components/icons'
 import Link from 'next/link'
 
@@ -77,7 +77,19 @@ export default function AdminPage() {
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('profile')
-  const { logout, profile, setTheme } = usePortfolioStore()
+  const { logout, profile, setTheme, isLoading } = usePortfolioStore()
+
+  // Show loading if profile not loaded yet
+  if (isLoading || !profile) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading admin panel...</p>
+        </div>
+      </div>
+    )
+  }
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
@@ -164,11 +176,15 @@ function AdminDashboard() {
 
 function ProfileEditor() {
   const { profile, setProfile } = usePortfolioStore()
-  const [formData, setFormData] = useState(profile)
+  const [formData, setFormData] = useState(profile!)
+
+  if (!profile) return <div className="text-gray-400">Loading profile...</div>
 
   const handleSave = () => {
-    setProfile(formData)
-    alert('Profile saved successfully!')
+    if (formData) {
+      setProfile(formData)
+      alert('Profile saved successfully!')
+    }
   }
 
   return (
@@ -180,8 +196,8 @@ function ProfileEditor() {
             <label className="form-label">Full Name</label>
             <input
               type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              value={formData?.name || ''}
+              onChange={(e) => setFormData({ ...formData!, name: e.target.value })}
               className="form-input"
             />
           </div>
@@ -189,8 +205,8 @@ function ProfileEditor() {
             <label className="form-label">Title</label>
             <input
               type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              value={formData?.title || ''}
+              onChange={(e) => setFormData({ ...formData!, title: e.target.value })}
               className="form-input"
             />
           </div>
@@ -198,8 +214,8 @@ function ProfileEditor() {
             <label className="form-label">Subtitle</label>
             <input
               type="text"
-              value={formData.subtitle}
-              onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+              value={formData?.subtitle || ''}
+              onChange={(e) => setFormData({ ...formData!, subtitle: e.target.value })}
               className="form-input"
             />
           </div>
@@ -207,8 +223,8 @@ function ProfileEditor() {
             <label className="form-label">Email</label>
             <input
               type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              value={formData?.email || ''}
+              onChange={(e) => setFormData({ ...formData!, email: e.target.value })}
               className="form-input"
             />
           </div>
@@ -216,8 +232,8 @@ function ProfileEditor() {
             <label className="form-label">Phone</label>
             <input
               type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              value={formData?.phone || ''}
+              onChange={(e) => setFormData({ ...formData!, phone: e.target.value })}
               className="form-input"
             />
           </div>
@@ -225,8 +241,8 @@ function ProfileEditor() {
             <label className="form-label">Location</label>
             <input
               type="text"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              value={formData?.location || ''}
+              onChange={(e) => setFormData({ ...formData!, location: e.target.value })}
               className="form-input"
             />
           </div>
@@ -234,8 +250,8 @@ function ProfileEditor() {
             <label className="form-label">Resume URL</label>
             <input
               type="text"
-              value={formData.resumeUrl}
-              onChange={(e) => setFormData({ ...formData, resumeUrl: e.target.value })}
+              value={formData?.resumeUrl || ''}
+              onChange={(e) => setFormData({ ...formData!, resumeUrl: e.target.value })}
               className="form-input"
               placeholder="/resume.pdf"
             />
@@ -243,10 +259,10 @@ function ProfileEditor() {
           <div className="flex items-center gap-4">
             <label className="form-label mb-0">Available for Hire</label>
             <button
-              onClick={() => setFormData({ ...formData, availableForHire: !formData.availableForHire })}
-              className={`w-12 h-6 rounded-full transition-all ${formData.availableForHire ? 'bg-green-500' : 'bg-slate-600'}`}
+              onClick={() => setFormData({ ...formData!, availableForHire: !formData?.availableForHire })}
+              className={`w-12 h-6 rounded-full transition-all ${formData?.availableForHire ? 'bg-green-500' : 'bg-slate-600'}`}
             >
-              <div className={`w-5 h-5 bg-white rounded-full transform transition-all ${formData.availableForHire ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              <div className={`w-5 h-5 bg-white rounded-full transform transition-all ${formData?.availableForHire ? 'translate-x-6' : 'translate-x-0.5'}`} />
             </button>
           </div>
         </div>
@@ -254,8 +270,8 @@ function ProfileEditor() {
         <div>
           <label className="form-label">Short Bio</label>
           <textarea
-            value={formData.shortBio}
-            onChange={(e) => setFormData({ ...formData, shortBio: e.target.value })}
+            value={formData?.shortBio || ''}
+            onChange={(e) => setFormData({ ...formData!, shortBio: e.target.value })}
             className="form-input resize-none"
             rows={2}
           />
@@ -264,8 +280,8 @@ function ProfileEditor() {
         <div>
           <label className="form-label">Full Bio</label>
           <textarea
-            value={formData.bio}
-            onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+            value={formData?.bio || ''}
+            onChange={(e) => setFormData({ ...formData!, bio: e.target.value })}
             className="form-input resize-none"
             rows={4}
           />
@@ -276,8 +292,8 @@ function ProfileEditor() {
             <label className="form-label">Years of Experience</label>
             <input
               type="number"
-              value={formData.yearsOfExperience}
-              onChange={(e) => setFormData({ ...formData, yearsOfExperience: parseInt(e.target.value) || 0 })}
+              value={formData?.yearsOfExperience || 0}
+              onChange={(e) => setFormData({ ...formData!, yearsOfExperience: parseInt(e.target.value) || 0 })}
               className="form-input"
             />
           </div>
@@ -285,8 +301,8 @@ function ProfileEditor() {
             <label className="form-label">Projects Completed</label>
             <input
               type="number"
-              value={formData.projectsCompleted}
-              onChange={(e) => setFormData({ ...formData, projectsCompleted: parseInt(e.target.value) || 0 })}
+              value={formData?.projectsCompleted || 0}
+              onChange={(e) => setFormData({ ...formData!, projectsCompleted: parseInt(e.target.value) || 0 })}
               className="form-input"
             />
           </div>
@@ -294,8 +310,8 @@ function ProfileEditor() {
             <label className="form-label">Happy Clients</label>
             <input
               type="number"
-              value={formData.happyClients}
-              onChange={(e) => setFormData({ ...formData, happyClients: parseInt(e.target.value) || 0 })}
+              value={formData?.happyClients || 0}
+              onChange={(e) => setFormData({ ...formData!, happyClients: parseInt(e.target.value) || 0 })}
               className="form-input"
             />
           </div>
@@ -315,6 +331,8 @@ function ProfileEditor() {
 
 function SectionsEditor() {
   const { sectionSettings, toggleSection } = usePortfolioStore()
+
+  if (!sectionSettings) return <div className="text-gray-400">Loading sections...</div>
 
   const sections: { key: keyof SectionSettings; label: string; description: string }[] = [
     { key: 'hero', label: 'Hero Section', description: 'Main landing section with profile info' },
