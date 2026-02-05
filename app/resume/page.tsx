@@ -35,211 +35,95 @@ export default function ResumePage() {
   const handleDownloadPDF = async () => {
     setIsGenerating(true)
     try {
-      const jsPDF = (await import('jspdf')).default
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const margin = 15
-      const contentWidth = pageWidth - 2 * margin
-      let y = margin
+      // Create a new window for clean PDF generation
+      const printWindow = window.open('', '_blank')
+      if (!printWindow) {
+        throw new Error('Could not open print window')
+      }
 
+      // Get the resume HTML without action bar
+      const resumeHTML = resumeRef.current?.innerHTML || ''
+      
+      // Build the complete HTML for PDF
       const colors = selectedTheme === 'bauhaus' 
         ? { primary: '#E53935', secondary: '#1E88E5', accent: '#FDD835', text: '#212121' }
         : { primary: '#0EA5E9', secondary: '#14B8A6', accent: '#F59E0B', text: '#1e293b' }
 
-      // Header
-      pdf.setFontSize(24)
-      pdf.setTextColor(colors.text)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text(profile.name, margin, y)
-      y += 8
+      const pdfHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${profile.name} - Resume</title>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+          <style>
+            ${selectedTheme === 'bauhaus' ? `
+              :root {
+                --primary: #E53935;
+                --secondary: #1E88E5;
+                --accent: #FDD835;
+                --text: #212121;
+              }
+              .font-black { font-weight: 900; }
+              .tracking-wide { letter-spacing: 0.05em; }
+            ` : `
+              :root {
+                --primary: #0EA5E9;
+                --secondary: #14B8A6;
+                --accent: #F59E0B;
+                --text: #1e293b;
+              }
+            `}
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
+              padding: 20px;
+              background: white;
+              color: var(--text);
+            }
+            .max-w-\\[210mm\\] {
+              max-width: 210mm;
+              margin: 0 auto;
+            }
+            a {
+              color: var(--primary);
+              text-decoration: underline;
+            }
+            .print\\:hidden { display: none !important; }
+            @media print {
+              body { margin: 0; padding: 0; }
+              .max-w-\\[210mm\\] { margin: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="max-w-[210mm]">
+            ${resumeHTML}
+          </div>
+          <script>
+            setTimeout(() => {
+              window.print();
+              setTimeout(() => window.close(), 1000);
+            }, 500);
+          </script>
+        </body>
+        </html>
+      `
 
-      pdf.setFontSize(12)
-      pdf.setTextColor(colors.primary)
-      pdf.text(profile.title, margin, y)
-      y += 5
-      if (profile.subtitle) {
-        pdf.setFontSize(10)
-        pdf.setTextColor(100, 100, 100)
-        pdf.text(profile.subtitle, margin, y)
-        y += 5
-      }
-      y += 3
+      printWindow.document.write(pdfHTML)
+      printWindow.document.close()
 
-      // Contact info with clickable links
-      pdf.setFontSize(9)
-      pdf.setTextColor(80, 80, 80)
-      let contactX = margin
-      
-      pdf.setTextColor(colors.primary)
-      pdf.textWithLink(profile.email, contactX, y, { url: `mailto:${profile.email}` })
-      contactX += pdf.getTextWidth(profile.email) + 10
-      
-      if (profile.phone) {
-        pdf.setTextColor(80, 80, 80)
-        pdf.text('|', contactX - 5, y)
-        pdf.setTextColor(colors.primary)
-        pdf.textWithLink(profile.phone, contactX, y, { url: `tel:${profile.phone}` })
-        contactX += pdf.getTextWidth(profile.phone) + 10
-      }
-      
-      pdf.setTextColor(80, 80, 80)
-      pdf.text('| ' + profile.location, contactX - 5, y)
-      y += 8
+      // Alternative: Use browser's native print-to-pdf functionality
+      setTimeout(() => {
+        printWindow.focus()
+      }, 100)
 
-      // Social links with clickable URLs
-      enabledSocialLinks.slice(0, 3).forEach((link, i) => {
-        pdf.setTextColor(colors.primary)
-        pdf.textWithLink(link.platform, margin + (i * 40), y, { url: link.url })
-      })
-      y += 6
-
-      // Divider line
-      pdf.setDrawColor(colors.primary)
-      pdf.setLineWidth(0.5)
-      pdf.line(margin, y, pageWidth - margin, y)
-      y += 8
-
-      // Professional Summary
-      if (sectionSettings.about) {
-        pdf.setFontSize(11)
-        pdf.setFont('helvetica', 'bold')
-        pdf.setTextColor(colors.text)
-        pdf.text('PROFESSIONAL SUMMARY', margin, y)
-        y += 6
-        pdf.setFontSize(9)
-        pdf.setFont('helvetica', 'normal')
-        pdf.setTextColor(60, 60, 60)
-        const bioLines = pdf.splitTextToSize(profile.bio, contentWidth)
-        pdf.text(bioLines, margin, y)
-        y += bioLines.length * 4 + 6
-      }
-
-      // Work Experience
-      if (sectionSettings.experience && enabledExperience.length > 0) {
-        pdf.setFontSize(11)
-        pdf.setFont('helvetica', 'bold')
-        pdf.setTextColor(colors.text)
-        pdf.text('WORK EXPERIENCE', margin, y)
-        y += 6
-
-        enabledExperience.slice(0, 3).forEach(exp => {
-          if (y > 270) { pdf.addPage(); y = margin }
-          pdf.setFontSize(10)
-          pdf.setFont('helvetica', 'bold')
-          pdf.setTextColor(colors.text)
-          pdf.text(exp.title, margin, y)
-          pdf.setFontSize(8)
-          pdf.setTextColor(100, 100, 100)
-          pdf.text(`${formatDate(exp.startDate)} - ${exp.current ? 'Present' : formatDate(exp.endDate || '')}`, pageWidth - margin - 30, y)
-          y += 4
-          pdf.setTextColor(colors.primary)
-          pdf.text(`${exp.company}`, margin, y)
-          y += 4
-          pdf.setFontSize(8)
-          pdf.setFont('helvetica', 'normal')
-          pdf.setTextColor(60, 60, 60)
-          exp.achievements.slice(0, 3).forEach(ach => {
-            const achLines = pdf.splitTextToSize('• ' + ach, contentWidth - 5)
-            pdf.text(achLines, margin + 2, y)
-            y += achLines.length * 3.5
-          })
-          y += 4
-        })
-      }
-
-      // Projects with clickable links
-      if (sectionSettings.projects && enabledProjects.length > 0) {
-        if (y > 250) { pdf.addPage(); y = margin }
-        pdf.setFontSize(11)
-        pdf.setFont('helvetica', 'bold')
-        pdf.setTextColor(colors.text)
-        pdf.text('KEY PROJECTS', margin, y)
-        y += 6
-
-        enabledProjects.slice(0, 3).forEach(project => {
-          if (y > 270) { pdf.addPage(); y = margin }
-          pdf.setFontSize(10)
-          pdf.setFont('helvetica', 'bold')
-          pdf.setTextColor(colors.text)
-          pdf.text(project.title, margin, y)
-          
-          // Add clickable project links
-          let linkX = margin + pdf.getTextWidth(project.title) + 5
-          if (project.githubUrl) {
-            pdf.setFontSize(8)
-            pdf.setTextColor(colors.secondary)
-            pdf.textWithLink('[Code]', linkX, y, { url: project.githubUrl })
-            linkX += 15
-          }
-          if (project.liveUrl) {
-            pdf.setFontSize(8)
-            pdf.setTextColor(colors.primary)
-            pdf.textWithLink('[Live Demo]', linkX, y, { url: project.liveUrl })
-          }
-          y += 4
-          pdf.setFontSize(8)
-          pdf.setFont('helvetica', 'normal')
-          pdf.setTextColor(60, 60, 60)
-          const descLines = pdf.splitTextToSize(project.description, contentWidth)
-          pdf.text(descLines.slice(0, 2), margin, y)
-          y += Math.min(descLines.length, 2) * 3.5 + 2
-          pdf.setTextColor(colors.primary)
-          pdf.text(project.technologies.slice(0, 5).join(' • '), margin, y)
-          y += 6
-        })
-      }
-
-      // Skills (right side simulation - we'll add at bottom for PDF)
-      if (sectionSettings.skills) {
-        if (y > 250) { pdf.addPage(); y = margin }
-        pdf.setFontSize(11)
-        pdf.setFont('helvetica', 'bold')
-        pdf.setTextColor(colors.text)
-        pdf.text('TECHNICAL SKILLS', margin, y)
-        y += 6
-        Object.entries(skillsByCategory).slice(0, 4).forEach(([category, categorySkills]) => {
-          pdf.setFontSize(9)
-          pdf.setFont('helvetica', 'bold')
-          pdf.setTextColor(100, 100, 100)
-          pdf.text(category.toUpperCase(), margin, y)
-          y += 4
-          pdf.setFontSize(8)
-          pdf.setFont('helvetica', 'normal')
-          pdf.setTextColor(60, 60, 60)
-          pdf.text(categorySkills.map(s => s.name).join(' • '), margin, y)
-          y += 5
-        })
-      }
-
-      // Education
-      if (sectionSettings.education && enabledEducation.length > 0) {
-        if (y > 260) { pdf.addPage(); y = margin }
-        y += 4
-        pdf.setFontSize(11)
-        pdf.setFont('helvetica', 'bold')
-        pdf.setTextColor(colors.text)
-        pdf.text('EDUCATION', margin, y)
-        y += 6
-        enabledEducation.forEach(edu => {
-          pdf.setFontSize(9)
-          pdf.setFont('helvetica', 'bold')
-          pdf.setTextColor(colors.text)
-          pdf.text(edu.degree, margin, y)
-          y += 4
-          pdf.setFont('helvetica', 'normal')
-          pdf.setTextColor(colors.primary)
-          pdf.text(edu.institution, margin, y)
-          pdf.setTextColor(100, 100, 100)
-          pdf.text(` (${edu.startDate} - ${edu.endDate})`, margin + pdf.getTextWidth(edu.institution), y)
-          y += 5
-        })
-      }
-
-      const themeSuffix = selectedTheme === 'bauhaus' ? '_Bauhaus' : '_Professional'
-      pdf.save(`${profile.name.replace(/\s+/g, '_')}_Resume${themeSuffix}.pdf`)
     } catch (error) {
       console.error('Error generating PDF:', error)
-      alert('Error generating PDF. Please try printing instead.')
+      // Fallback to regular print
+      alert('PDF generation failed. Opening print dialog instead...')
+      window.print()
     }
     setIsGenerating(false)
   }
