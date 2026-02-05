@@ -62,8 +62,8 @@ export default function BauhausPortfolio() {
               ))}
             </div>
             <button onClick={handleDownloadResume}
-              className="flex items-center gap-2 bg-[#E53935] text-white px-4 py-2 text-sm font-bold hover:bg-[#FDD835] hover:text-black transition-all">
-              <Download size={16} /> CV
+              className="flex items-center gap-2 bg-[#E53935] text-white px-4 py-2 text-sm font-bold hover:bg-[#FDD835] hover:text-black transition-all shadow-lg hover:shadow-xl">
+              <Download size={16} /> Download CV
             </button>
             <Link href="/admin" className="p-2 hover:text-[#FDD835] transition-colors">
               <Icon name="settings" size={16} />
@@ -112,19 +112,19 @@ export default function BauhausPortfolio() {
 
             {/* Contact Info */}
             <div className="bg-gray-100 p-4 space-y-2">
-              <a href={`mailto:${profile.email}`} className="flex items-center gap-3 text-sm hover:text-[#E53935] transition-colors">
-                <div className="w-8 h-8 bg-[#E53935] text-white flex items-center justify-center"><Mail size={14} /></div>
-                <span className="truncate">{profile.email}</span>
+              <a href={`mailto:${profile.email}`} className="flex items-center gap-3 text-sm text-gray-800 hover:text-[#E53935] transition-colors group">
+                <div className="w-8 h-8 bg-[#E53935] text-white flex items-center justify-center group-hover:scale-110 transition-transform"><Mail size={14} /></div>
+                <span className="truncate font-medium underline decoration-[#E53935] decoration-2 underline-offset-2">{profile.email}</span>
               </a>
               {profile.phone && (
-                <a href={`tel:${profile.phone}`} className="flex items-center gap-3 text-sm hover:text-[#1E88E5] transition-colors">
-                  <div className="w-8 h-8 bg-[#1E88E5] text-white flex items-center justify-center"><Phone size={14} /></div>
-                  <span>{profile.phone}</span>
+                <a href={`tel:${profile.phone}`} className="flex items-center gap-3 text-sm text-gray-800 hover:text-[#1E88E5] transition-colors group">
+                  <div className="w-8 h-8 bg-[#1E88E5] text-white flex items-center justify-center group-hover:scale-110 transition-transform"><Phone size={14} /></div>
+                  <span className="font-medium underline decoration-[#1E88E5] decoration-2 underline-offset-2">{profile.phone}</span>
                 </a>
               )}
-              <div className="flex items-center gap-3 text-sm">
+              <div className="flex items-center gap-3 text-sm text-gray-800">
                 <div className="w-8 h-8 bg-[#FDD835] text-black flex items-center justify-center"><MapPin size={14} /></div>
-                <span>{profile.location}</span>
+                <span className="font-medium">{profile.location}</span>
               </div>
             </div>
 
@@ -253,7 +253,7 @@ export default function BauhausPortfolio() {
                       {exp.technologies.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {exp.technologies.map((tech, j) => (
-                            <span key={j} className="px-2 py-0.5 bg-gray-200 text-xs font-bold">{tech}</span>
+                            <span key={j} className="px-2 py-0.5 bg-gray-800 text-white text-xs font-bold">{tech}</span>
                           ))}
                         </div>
                       )}
@@ -285,18 +285,30 @@ export default function BauhausPortfolio() {
                             />
                           </div>
                         ) : (
-                          <div className={`aspect-video flex items-center justify-center text-4xl font-black text-white ${
-                            i % 3 === 0 ? 'bg-[#E53935]' : i % 3 === 1 ? 'bg-[#1E88E5]' : 'bg-[#FDD835] text-black'
+                          <div className={`aspect-video flex flex-col items-center justify-center relative overflow-hidden ${
+                            i % 3 === 0 ? 'bg-[#E53935]' : i % 3 === 1 ? 'bg-[#1E88E5]' : 'bg-[#FDD835]'
                           }`}>
-                            {project.title.substring(0, 2).toUpperCase()}
+                            <div className="absolute inset-0 opacity-20">
+                              <div className="absolute top-4 left-4 w-12 h-12 border-4 border-white" />
+                              <div className="absolute bottom-4 right-4 w-16 h-16 rounded-full border-4 border-white" />
+                              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rotate-45" />
+                            </div>
+                            <Code size={32} className={`mb-2 ${i % 3 === 2 ? 'text-black' : 'text-white'}`} />
+                            <span className={`text-lg font-black ${i % 3 === 2 ? 'text-black' : 'text-white'}`}>
+                              {project.title.length > 20 ? project.title.substring(0, 20) + '...' : project.title}
+                            </span>
                           </div>
                         )}
-                        <div className="p-4 bg-gray-50">
+                        <div className="p-4 bg-white">
                           <div className="flex items-start justify-between gap-2 mb-2">
-                            <h4 className="font-black">{project.title}</h4>
-                            {project.featured && <Star size={14} className="text-[#FDD835] fill-[#FDD835]" />}
+                            <h4 className="font-black text-gray-900">{project.title}</h4>
+                            {project.featured && (
+                              <span className="flex items-center gap-1 px-2 py-0.5 bg-[#FDD835] text-black text-[10px] font-bold">
+                                <Star size={10} className="fill-current" /> FEATURED
+                              </span>
+                            )}
                           </div>
-                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{project.description}</p>
+                          <p className="text-gray-700 text-sm mb-3 line-clamp-2">{project.description}</p>
                           <div className="flex flex-wrap gap-1 mb-3">
                             {project.technologies.slice(0, 4).map((tech, j) => (
                               <span key={j} className={`px-1.5 py-0.5 text-[10px] font-bold ${
@@ -304,17 +316,17 @@ export default function BauhausPortfolio() {
                               }`}>{tech}</span>
                             ))}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
                             {project.githubUrl && (
                               <a href={project.githubUrl} target="_blank" rel="noopener noreferrer"
-                                 className="flex items-center gap-1 text-xs text-gray-600 hover:text-black transition-colors">
-                                <Github size={14} /> Code
+                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-black text-white text-xs font-bold hover:bg-[#1E88E5] transition-all">
+                                <Github size={14} /> View Code
                               </a>
                             )}
                             {project.liveUrl && (
                               <a href={project.liveUrl} target="_blank" rel="noopener noreferrer"
-                                 className="flex items-center gap-1 text-xs text-gray-600 hover:text-black transition-colors">
-                                <ExternalLink size={14} /> Live
+                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E53935] text-white text-xs font-bold hover:bg-[#FDD835] hover:text-black transition-all">
+                                <ExternalLink size={14} /> Live Demo
                               </a>
                             )}
                           </div>

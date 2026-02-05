@@ -61,7 +61,7 @@ export default function ProfessionalPortfolio() {
               ))}
             </div>
             <button onClick={handleDownloadResume}
-              className="flex items-center gap-2 bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+              className="flex items-center gap-2 bg-gradient-to-r from-primary to-secondary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-primary/25">
               <Download size={16} /> Resume
             </button>
             <Link href="/admin" className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all">
@@ -106,16 +106,18 @@ export default function ProfessionalPortfolio() {
 
               {/* Contact Info */}
               <div className="pt-4 space-y-2 text-sm">
-                <a href={`mailto:${profile.email}`} className="flex items-center gap-3 text-gray-300 hover:text-primary transition-colors">
-                  <Mail size={16} className="text-primary" /> {profile.email}
+                <a href={`mailto:${profile.email}`} className="flex items-center gap-3 text-gray-200 hover:text-primary transition-colors group">
+                  <Mail size={16} className="text-primary" /> 
+                  <span className="underline decoration-primary/50 underline-offset-2 group-hover:decoration-primary">{profile.email}</span>
                 </a>
                 {profile.phone && (
-                  <a href={`tel:${profile.phone}`} className="flex items-center gap-3 text-gray-300 hover:text-primary transition-colors">
-                    <Phone size={16} className="text-primary" /> {profile.phone}
+                  <a href={`tel:${profile.phone}`} className="flex items-center gap-3 text-gray-200 hover:text-primary transition-colors group">
+                    <Phone size={16} className="text-primary" /> 
+                    <span className="underline decoration-primary/50 underline-offset-2 group-hover:decoration-primary">{profile.phone}</span>
                   </a>
                 )}
-                <div className="flex items-center gap-3 text-gray-300">
-                  <MapPin size={16} className="text-primary" /> {profile.location}
+                <div className="flex items-center gap-3 text-gray-200">
+                  <MapPin size={16} className="text-primary" /> <span className="font-medium">{profile.location}</span>
                 </div>
               </div>
             </div>
@@ -264,36 +266,45 @@ export default function ProfessionalPortfolio() {
                             <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                            <Code size={40} className="text-primary/50" />
+                          <div className="aspect-video bg-gradient-to-br from-primary/30 to-secondary/30 flex flex-col items-center justify-center relative overflow-hidden">
+                            <div className="absolute inset-0 opacity-10">
+                              <div className="absolute top-4 right-4 w-20 h-20 border-2 border-primary rounded-full" />
+                              <div className="absolute bottom-4 left-4 w-16 h-16 border-2 border-secondary" />
+                            </div>
+                            <Code size={36} className="text-primary mb-2" />
+                            <span className="text-white/80 text-sm font-medium text-center px-4">
+                              {project.title.length > 25 ? project.title.substring(0, 25) + '...' : project.title}
+                            </span>
                           </div>
                         )}
                         <div className="p-4">
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <h4 className="text-white font-semibold">{project.title}</h4>
                             {project.featured && (
-                              <Star size={14} className="text-yellow-500 flex-shrink-0" />
+                              <span className="flex items-center gap-1 px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-[10px] font-medium rounded-full">
+                                <Star size={10} className="fill-current" /> Featured
+                              </span>
                             )}
                           </div>
-                          <p className="text-gray-400 text-sm mb-3 line-clamp-2">{project.description}</p>
-                          <div className="flex flex-wrap gap-1 mb-3">
+                          <p className="text-gray-300 text-sm mb-3 line-clamp-2">{project.description}</p>
+                          <div className="flex flex-wrap gap-1.5 mb-3">
                             {project.technologies.slice(0, 4).map((tech, i) => (
-                              <span key={i} className="px-1.5 py-0.5 bg-slate-600 text-gray-300 text-xs rounded">
+                              <span key={i} className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded-md border border-primary/30">
                                 {tech}
                               </span>
                             ))}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 pt-3 border-t border-slate-600">
                             {project.githubUrl && (
                               <a href={project.githubUrl} target="_blank" rel="noopener noreferrer"
-                                 className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors">
-                                <Github size={14} /> Code
+                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-600 text-white text-xs font-medium rounded-md hover:bg-primary transition-all">
+                                <Github size={14} /> View Code
                               </a>
                             )}
                             {project.liveUrl && (
                               <a href={project.liveUrl} target="_blank" rel="noopener noreferrer"
-                                 className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors">
-                                <ExternalLink size={14} /> Live
+                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-primary to-secondary text-white text-xs font-medium rounded-md hover:opacity-90 transition-all">
+                                <ExternalLink size={14} /> Live Demo
                               </a>
                             )}
                           </div>
@@ -317,8 +328,8 @@ export default function ProfessionalPortfolio() {
                       <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center mb-3">
                         <Icon name={service.icon} size={20} className="text-primary" />
                       </div>
-                      <h4 className="text-white font-medium mb-1">{service.title}</h4>
-                      <p className="text-gray-400 text-sm line-clamp-2">{service.description}</p>
+                      <h4 className="text-white font-semibold mb-1">{service.title}</h4>
+                      <p className="text-gray-300 text-sm line-clamp-2">{service.description}</p>
                     </div>
                   ))}
                 </div>
@@ -337,7 +348,7 @@ export default function ProfessionalPortfolio() {
                           <Star key={i} size={14} className="text-yellow-500 fill-yellow-500" />
                         ))}
                       </div>
-                      <p className="text-gray-300 text-sm italic mb-3">"{testimonial.content}"</p>
+                      <p className="text-gray-200 text-sm italic mb-3 leading-relaxed">"{testimonial.content}"</p>
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-xs font-bold text-primary">
                           {testimonial.name.split(' ').map(n => n[0]).join('')}
