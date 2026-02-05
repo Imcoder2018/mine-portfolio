@@ -1,18 +1,36 @@
 import { neon } from '@neondatabase/serverless'
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set')
+// Database connection with fallback
+let sql: any = null
+
+if (process.env.DATABASE_URL) {
+  try {
+    sql = neon(process.env.DATABASE_URL)
+  } catch (error) {
+    console.warn('Failed to initialize database connection:', error)
+  }
 }
 
-export const sql = neon(process.env.DATABASE_URL)
+// Helper function to check if database is available
+export function isDatabaseAvailable() {
+  return sql !== null
+}
 
 // Profile operations
 export async function getProfile() {
-  const result = await sql`SELECT * FROM profile ORDER BY id DESC LIMIT 1`
-  return result[0] || null
+  if (!sql) return null
+  try {
+    const result = await sql`SELECT * FROM profile ORDER BY id DESC LIMIT 1`
+    return result[0] || null
+  } catch (error) {
+    console.error('Error fetching profile:', error)
+    return null
+  }
 }
 
 export async function updateProfile(data: any) {
+  if (!sql) throw new Error('Database not available')
+  
   const existing = await getProfile()
   
   if (existing) {
@@ -55,10 +73,17 @@ export async function updateProfile(data: any) {
 
 // Social links operations
 export async function getSocialLinks() {
-  return await sql`SELECT * FROM social_links ORDER BY id`
+  if (!sql) return []
+  try {
+    return await sql`SELECT * FROM social_links ORDER BY id`
+  } catch (error) {
+    console.error('Error fetching social links:', error)
+    return []
+  }
 }
 
 export async function addSocialLink(data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     INSERT INTO social_links (platform, url, icon, enabled)
     VALUES (${data.platform}, ${data.url}, ${data.icon}, ${data.enabled})
@@ -68,6 +93,7 @@ export async function addSocialLink(data: any) {
 }
 
 export async function updateSocialLink(id: string, data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     UPDATE social_links 
     SET platform = ${data.platform}, url = ${data.url}, icon = ${data.icon}, enabled = ${data.enabled}
@@ -78,15 +104,23 @@ export async function updateSocialLink(id: string, data: any) {
 }
 
 export async function deleteSocialLink(id: string) {
+  if (!sql) throw new Error('Database not available')
   await sql`DELETE FROM social_links WHERE id = ${id}`
 }
 
 // Skills operations
 export async function getSkills() {
-  return await sql`SELECT * FROM skills ORDER BY category, name`
+  if (!sql) return []
+  try {
+    return await sql`SELECT * FROM skills ORDER BY category, name`
+  } catch (error) {
+    console.error('Error fetching skills:', error)
+    return []
+  }
 }
 
 export async function addSkill(data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     INSERT INTO skills (name, category, level, enabled)
     VALUES (${data.name}, ${data.category}, ${data.level}, ${data.enabled})
@@ -96,6 +130,7 @@ export async function addSkill(data: any) {
 }
 
 export async function updateSkill(id: string, data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     UPDATE skills 
     SET name = ${data.name}, category = ${data.category}, level = ${data.level}, enabled = ${data.enabled}
@@ -106,15 +141,23 @@ export async function updateSkill(id: string, data: any) {
 }
 
 export async function deleteSkill(id: string) {
+  if (!sql) throw new Error('Database not available')
   await sql`DELETE FROM skills WHERE id = ${id}`
 }
 
 // Work experience operations
 export async function getWorkExperience() {
-  return await sql`SELECT * FROM work_experience ORDER BY start_date DESC`
+  if (!sql) return []
+  try {
+    return await sql`SELECT * FROM work_experience ORDER BY start_date DESC`
+  } catch (error) {
+    console.error('Error fetching work experience:', error)
+    return []
+  }
 }
 
 export async function addWorkExperience(data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     INSERT INTO work_experience (
       title, company, location, start_date, end_date, current, description,
@@ -130,6 +173,7 @@ export async function addWorkExperience(data: any) {
 }
 
 export async function updateWorkExperience(id: string, data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     UPDATE work_experience 
     SET 
@@ -144,15 +188,23 @@ export async function updateWorkExperience(id: string, data: any) {
 }
 
 export async function deleteWorkExperience(id: string) {
+  if (!sql) throw new Error('Database not available')
   await sql`DELETE FROM work_experience WHERE id = ${id}`
 }
 
 // Projects operations
 export async function getProjects() {
-  return await sql`SELECT * FROM projects ORDER BY featured DESC, start_date DESC`
+  if (!sql) return []
+  try {
+    return await sql`SELECT * FROM projects ORDER BY featured DESC, start_date DESC`
+  } catch (error) {
+    console.error('Error fetching projects:', error)
+    return []
+  }
 }
 
 export async function addProject(data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     INSERT INTO projects (
       title, description, long_description, technologies, image_url, video_url,
@@ -168,6 +220,7 @@ export async function addProject(data: any) {
 }
 
 export async function updateProject(id: string, data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     UPDATE projects 
     SET 
@@ -182,15 +235,23 @@ export async function updateProject(id: string, data: any) {
 }
 
 export async function deleteProject(id: string) {
+  if (!sql) throw new Error('Database not available')
   await sql`DELETE FROM projects WHERE id = ${id}`
 }
 
 // Education operations
 export async function getEducation() {
-  return await sql`SELECT * FROM education ORDER BY start_date DESC`
+  if (!sql) return []
+  try {
+    return await sql`SELECT * FROM education ORDER BY start_date DESC`
+  } catch (error) {
+    console.error('Error fetching education:', error)
+    return []
+  }
 }
 
 export async function addEducation(data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     INSERT INTO education (
       degree, institution, location, start_date, end_date, description, achievements, enabled
@@ -204,6 +265,7 @@ export async function addEducation(data: any) {
 }
 
 export async function updateEducation(id: string, data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     UPDATE education 
     SET 
@@ -217,15 +279,23 @@ export async function updateEducation(id: string, data: any) {
 }
 
 export async function deleteEducation(id: string) {
+  if (!sql) throw new Error('Database not available')
   await sql`DELETE FROM education WHERE id = ${id}`
 }
 
 // Certifications operations
 export async function getCertifications() {
-  return await sql`SELECT * FROM certifications ORDER BY date DESC`
+  if (!sql) return []
+  try {
+    return await sql`SELECT * FROM certifications ORDER BY date DESC`
+  } catch (error) {
+    console.error('Error fetching certifications:', error)
+    return []
+  }
 }
 
 export async function addCertification(data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     INSERT INTO certifications (name, issuer, date, url, credential_id, enabled)
     VALUES (${data.name}, ${data.issuer}, ${data.date}, ${data.url}, ${data.credentialId}, ${data.enabled})
@@ -235,6 +305,7 @@ export async function addCertification(data: any) {
 }
 
 export async function updateCertification(id: string, data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     UPDATE certifications 
     SET name = ${data.name}, issuer = ${data.issuer}, date = ${data.date},
@@ -246,15 +317,23 @@ export async function updateCertification(id: string, data: any) {
 }
 
 export async function deleteCertification(id: string) {
+  if (!sql) throw new Error('Database not available')
   await sql`DELETE FROM certifications WHERE id = ${id}`
 }
 
 // Testimonials operations
 export async function getTestimonials() {
-  return await sql`SELECT * FROM testimonials ORDER BY created_at DESC`
+  if (!sql) return []
+  try {
+    return await sql`SELECT * FROM testimonials ORDER BY created_at DESC`
+  } catch (error) {
+    console.error('Error fetching testimonials:', error)
+    return []
+  }
 }
 
 export async function addTestimonial(data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     INSERT INTO testimonials (name, role, company, content, image_url, rating, enabled)
     VALUES (${data.name}, ${data.role}, ${data.company}, ${data.content}, ${data.imageUrl}, ${data.rating}, ${data.enabled})
@@ -264,6 +343,7 @@ export async function addTestimonial(data: any) {
 }
 
 export async function updateTestimonial(id: string, data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     UPDATE testimonials 
     SET name = ${data.name}, role = ${data.role}, company = ${data.company},
@@ -275,15 +355,23 @@ export async function updateTestimonial(id: string, data: any) {
 }
 
 export async function deleteTestimonial(id: string) {
+  if (!sql) throw new Error('Database not available')
   await sql`DELETE FROM testimonials WHERE id = ${id}`
 }
 
 // Services operations
 export async function getServices() {
-  return await sql`SELECT * FROM services ORDER BY id`
+  if (!sql) return []
+  try {
+    return await sql`SELECT * FROM services ORDER BY id`
+  } catch (error) {
+    console.error('Error fetching services:', error)
+    return []
+  }
 }
 
 export async function addService(data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     INSERT INTO services (title, description, icon, features, enabled)
     VALUES (${data.title}, ${data.description}, ${data.icon}, ${data.features}, ${data.enabled})
@@ -293,6 +381,7 @@ export async function addService(data: any) {
 }
 
 export async function updateService(id: string, data: any) {
+  if (!sql) throw new Error('Database not available')
   const result = await sql`
     UPDATE services 
     SET title = ${data.title}, description = ${data.description}, icon = ${data.icon},
@@ -304,16 +393,25 @@ export async function updateService(id: string, data: any) {
 }
 
 export async function deleteService(id: string) {
+  if (!sql) throw new Error('Database not available')
   await sql`DELETE FROM services WHERE id = ${id}`
 }
 
 // Section settings operations
 export async function getSectionSettings() {
-  const result = await sql`SELECT * FROM section_settings ORDER BY id DESC LIMIT 1`
-  return result[0] || null
+  if (!sql) return null
+  try {
+    const result = await sql`SELECT * FROM section_settings ORDER BY id DESC LIMIT 1`
+    return result[0] || null
+  } catch (error) {
+    console.error('Error fetching section settings:', error)
+    return null
+  }
 }
 
 export async function updateSectionSettings(data: any) {
+  if (!sql) throw new Error('Database not available')
+  
   const existing = await getSectionSettings()
   
   if (existing) {
@@ -350,11 +448,19 @@ export async function updateSectionSettings(data: any) {
 
 // Admin operations
 export async function getAdminSettings() {
-  const result = await sql`SELECT * FROM admin_settings ORDER BY id DESC LIMIT 1`
-  return result[0] || null
+  if (!sql) return null
+  try {
+    const result = await sql`SELECT * FROM admin_settings ORDER BY id DESC LIMIT 1`
+    return result[0] || null
+  } catch (error) {
+    console.error('Error fetching admin settings:', error)
+    return null
+  }
 }
 
 export async function updateAdminPassword(password: string) {
+  if (!sql) throw new Error('Database not available')
+  
   const existing = await getAdminSettings()
   
   if (existing) {

@@ -58,21 +58,21 @@ export async function GET() {
         happyClients: profile.happy_clients,
         theme: profile.theme || 'professional'
       } : null,
-      socialLinks: socialLinks.map(link => ({
+      socialLinks: socialLinks.map((link: any) => ({
         id: link.id.toString(),
         platform: link.platform,
         url: link.url,
         icon: link.icon,
         enabled: link.enabled
       })),
-      skills: skills.map(skill => ({
+      skills: skills.map((skill: any) => ({
         id: skill.id.toString(),
         name: skill.name,
         category: skill.category,
         level: skill.level,
         enabled: skill.enabled
       })),
-      workExperience: workExperience.map(exp => ({
+      workExperience: workExperience.map((exp: any) => ({
         id: exp.id.toString(),
         title: exp.title,
         company: exp.company,
@@ -86,7 +86,7 @@ export async function GET() {
         links: exp.links || [],
         enabled: exp.enabled
       })),
-      projects: projects.map(project => ({
+      projects: projects.map((project: any) => ({
         id: project.id.toString(),
         title: project.title,
         description: project.description,
@@ -102,7 +102,7 @@ export async function GET() {
         endDate: project.end_date || '',
         enabled: project.enabled
       })),
-      education: education.map(edu => ({
+      education: education.map((edu: any) => ({
         id: edu.id.toString(),
         degree: edu.degree,
         institution: edu.institution,
@@ -113,7 +113,7 @@ export async function GET() {
         achievements: edu.achievements || [],
         enabled: edu.enabled
       })),
-      certifications: certifications.map(cert => ({
+      certifications: certifications.map((cert: any) => ({
         id: cert.id.toString(),
         name: cert.name,
         issuer: cert.issuer,
@@ -122,7 +122,7 @@ export async function GET() {
         credentialId: cert.credential_id || '',
         enabled: cert.enabled
       })),
-      testimonials: testimonials.map(testimonial => ({
+      testimonials: testimonials.map((testimonial: any) => ({
         id: testimonial.id.toString(),
         name: testimonial.name,
         role: testimonial.role,
@@ -132,7 +132,7 @@ export async function GET() {
         rating: testimonial.rating,
         enabled: testimonial.enabled
       })),
-      services: services.map(service => ({
+      services: services.map((service: any) => ({
         id: service.id.toString(),
         title: service.title,
         description: service.description,
