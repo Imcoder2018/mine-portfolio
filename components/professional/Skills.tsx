@@ -1,14 +1,14 @@
 'use client'
 
-import { usePortfolioStore } from '@/lib/store'
+import { usePortfolioStore } from '@/lib/store-new'
 
 export default function Skills() {
   const { skills, sectionSettings } = usePortfolioStore()
 
-  if (!sectionSettings.skills) return null
+  if (!sectionSettings?.skills) return null
 
   const enabledSkills = skills.filter(skill => skill.enabled)
-  const categories = [...new Set(enabledSkills.map(skill => skill.category))]
+  const categories = Array.from(new Set(enabledSkills.map(skill => skill.category)))
 
   const categoryColors: Record<string, string> = {
     'Frontend': 'from-blue-500 to-cyan-500',

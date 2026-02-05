@@ -1,13 +1,24 @@
 'use client'
 
-import { usePortfolioStore } from '@/lib/store'
+import { usePortfolioStore } from '@/lib/store-new'
 import { Icon } from '@/components/icons'
 import { formatDate, getYouTubeVideoId } from '@/lib/utils'
 import Link from 'next/link'
 import { Download, Mail, Phone, MapPin, Github, ExternalLink, Calendar, Star, Award, Code, Briefcase, GraduationCap } from 'lucide-react'
 
 export default function BauhausPortfolio() {
-  const { profile, socialLinks, skills, workExperience, projects, education, certifications, services, testimonials, sectionSettings } = usePortfolioStore()
+  const { profile, socialLinks, skills, workExperience, projects, education, certifications, services, testimonials, sectionSettings, isLoading } = usePortfolioStore()
+
+  if (isLoading || !profile || !sectionSettings) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-red-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-bold">Loading Portfolio...</p>
+        </div>
+      </div>
+    )
+  }
 
   const enabledSocialLinks = socialLinks.filter(link => link.enabled)
   const enabledSkills = skills.filter(skill => skill.enabled)

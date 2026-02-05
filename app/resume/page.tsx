@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { usePortfolioStore } from '@/lib/store'
+import { usePortfolioStore } from '@/lib/store-new'
 import { formatDate } from '@/lib/utils'
 import { Mail, Phone, MapPin, Download, Printer, FileText, Palette, ExternalLink, Github } from 'lucide-react'
 import { Icon } from '@/components/icons'
@@ -13,7 +13,19 @@ export default function ResumePage() {
   const resumeRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>('professional')
-  const { profile, socialLinks, skills, workExperience, projects, education, certifications, sectionSettings } = usePortfolioStore()
+  const { profile, socialLinks, skills, workExperience, projects, education, certifications, sectionSettings, isLoading } = usePortfolioStore()
+
+  // Handle loading state
+  if (isLoading || !profile || !sectionSettings) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading resume...</p>
+        </div>
+      </div>
+    )
+  }
 
   const enabledSocialLinks = socialLinks.filter(link => link.enabled)
   const enabledSkills = skills.filter(skill => skill.enabled)
