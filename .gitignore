@@ -27,8 +27,13 @@ yarn-error.log*
 # local env files
 .env*.local
 .env*
+
 # vercel
 .vercel
+
+# Prisma
+/lib/generated/prisma
+/prisma/migrations
 
 # typescript
 *.tsbuildinfo
@@ -60,7 +65,7 @@ coverage/
 *.lcov
 
 # nyc test coverage
-.nyc_output
+nyc_output
 
 # Dependency directories
 node_modules/
@@ -108,7 +113,3 @@ jspm_packages/
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
-
-.vercel
-
-/lib/generated/prisma

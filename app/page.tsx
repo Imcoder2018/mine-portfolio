@@ -3,6 +3,7 @@
 import { usePortfolioStore } from '@/lib/store-prisma'
 import ProfessionalPortfolio from '@/components/professional/ProfessionalPortfolio'
 import BauhausPortfolio from '@/components/bauhaus/BauhausPortfolio'
+import ThemeSwitcher from '@/components/ThemeSwitcher'
 
 export default function Home() {
   const { profile, isLoading } = usePortfolioStore()
@@ -18,9 +19,12 @@ export default function Home() {
     )
   }
 
-  if (profile?.theme === 'bauhaus') {
-    return <BauhausPortfolio />
-  }
+  const PortfolioComponent = profile?.theme === 'bauhaus' ? BauhausPortfolio : ProfessionalPortfolio
 
-  return <ProfessionalPortfolio />
+  return (
+    <>
+      <ThemeSwitcher />
+      <PortfolioComponent />
+    </>
+  )
 }

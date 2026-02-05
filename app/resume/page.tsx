@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { usePortfolioStore } from '@/lib/store-prisma'
 import { formatDate } from '@/lib/utils'
 import { Mail, Phone, MapPin, Download, Printer, FileText, Palette, ExternalLink, Github } from 'lucide-react'
@@ -13,7 +13,7 @@ export default function ResumePage() {
   const resumeRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState<ThemeType>('professional')
-  const { profile, socialLinks, skills, workExperience, projects, education, certifications, sectionSettings, isLoading } = usePortfolioStore()
+  const { profile, socialLinks, skills, workExperience, projects, education, certifications, sectionSettings, isLoading, setTheme } = usePortfolioStore()
 
   // Handle loading state
   if (isLoading || !profile || !sectionSettings) {
@@ -25,6 +25,18 @@ export default function ResumePage() {
         </div>
       </div>
     )
+  }
+
+  // Initialize selectedTheme from profile
+  useEffect(() => {
+    if (profile?.theme) {
+      setSelectedTheme(profile.theme)
+    }
+  }, [profile])
+
+  const handleThemeChange = async (theme: ThemeType) => {
+    setSelectedTheme(theme)
+    await setTheme(theme)
   }
 
   const enabledSocialLinks = socialLinks.filter(link => link.enabled)
@@ -158,7 +170,7 @@ export default function ResumePage() {
             {/* Theme Selector */}
             <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
               <button
-                onClick={() => setSelectedTheme('professional')}
+                onClick={() => handleThemeChange('professional')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   selectedTheme === 'professional' 
                     ? 'bg-blue-600 text-white shadow-sm' 
@@ -168,7 +180,7 @@ export default function ResumePage() {
                 <Palette size={14} /> Professional
               </button>
               <button
-                onClick={() => setSelectedTheme('bauhaus')}
+                onClick={() => handleThemeChange('bauhaus')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   selectedTheme === 'bauhaus' 
                     ? 'bg-red-600 text-white shadow-sm' 
@@ -184,6 +196,13 @@ export default function ResumePage() {
             >
               <Printer size={18} /> Print
             </button>
+            <Link href="/" className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors font-medium shadow-lg ${
+              selectedTheme === 'bauhaus' 
+                ? 'bg-gray-800 hover:bg-gray-900' 
+                : 'bg-gray-700 hover:bg-gray-800'
+            }`}>
+              <Palette size={18} /> View Portfolio
+            </Link>
             <button
               onClick={handleDownloadPDF}
               disabled={isGenerating}

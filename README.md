@@ -1,6 +1,6 @@
 # 🚀 AI Portfolio Website
 
-A modern, dynamic portfolio website built with Next.js, featuring AI integration, real-time database backend with Neon PostgreSQL, and responsive design with multiple themes.
+A modern, dynamic portfolio website built with Next.js, featuring AI integration, real-time database backend with **Prisma Postgres**, and responsive design with multiple themes.
 
 ## ✨ Features
 
@@ -11,10 +11,13 @@ A modern, dynamic portfolio website built with Next.js, featuring AI integration
 - **Dark/Light Modes**: Theme-specific color schemes
 
 ### 🗄️ **Database Backend**
-- **Neon PostgreSQL**: Cloud-native database with real-time sync
+- **Prisma Postgres**: Modern ORM with type-safe database operations
+- **Real-time Data Sync**: Prisma Accelerate for optimal performance
 - **Full CRUD Operations**: Create, read, update, delete all content
-- **Data Persistence**: All portfolio data stored securely in the cloud
-- **Automatic Backups**: Neon handles database backups and maintenance
+- **Data Persistence**: All portfolio data stored securely in cloud database
+- **Automatic Backups**: Prisma handles database migrations and maintenance
+- **Type Safety**: Full TypeScript support with generated client
+- **Performance Optimized**: Query optimization and connection pooling
 
 ### 📱 **Portfolio Sections**
 - **Hero Section**: Dynamic introduction with call-to-action
@@ -47,7 +50,7 @@ A modern, dynamic portfolio website built with Next.js, featuring AI integration
 - **Type Safety**: Full TypeScript support
 - **Error Handling**: Graceful fallbacks and error recovery
 
-## 🛠️ Tech Stack
+## 🛠️ **Tech Stack**
 
 ### **Frontend**
 - **Next.js 14**: React framework with App Router
@@ -57,9 +60,10 @@ A modern, dynamic portfolio website built with Next.js, featuring AI integration
 - **Lucide React**: Modern icon library
 - **React Hot Toast**: Elegant notifications
 
-### **Backend**
-- **Neon PostgreSQL**: Serverless PostgreSQL database
-- **@neondatabase/serverless**: Neon database driver
+### **Backend & Database**
+- **Prisma**: Modern ORM with type-safe database operations
+- **Prisma Postgres**: Cloud-native PostgreSQL database
+- **Prisma Accelerate**: Real-time data synchronization
 - **Next.js API Routes**: Server-side API endpoints
 - **Zustand**: Lightweight state management
 
@@ -68,12 +72,13 @@ A modern, dynamic portfolio website built with Next.js, featuring AI integration
 - **PostCSS**: CSS processing
 - **Autoprefixer**: CSS vendor prefixes
 - **Vercel**: Deployment and hosting
+- **tsx**: TypeScript execution for scripts
 
 ## 🚀 Quick Start
 
 ### **Prerequisites**
 - Node.js 18+ installed
-- Neon database account (free tier available)
+- Prisma account (free tier available)
 - Vercel account for deployment
 
 ### **1. Clone the Repository**
@@ -90,17 +95,27 @@ npm install
 ### **3. Set Up Environment Variables**
 Create a `.env.local` file:
 ```env
-DATABASE_URL=postgresql://neondb_owner:your_password@your-neon-host.neon.tech/neondb?sslmode=require
+DATABASE_URL="postgres://your_username:your_password@db.prisma.io:5432/postgres?sslmode=require"
+POSTGRES_URL="postgres://your_username:your_password@db.prisma.io:5432/postgres?sslmode=require"
+PRISMA_DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=your_api_key"
 ```
 
-### **4. Set Up Database**
-1. Go to [Neon Console](https://console.neon.tech/)
+### **4. Set Up Prisma Database**
+1. Go to [Prisma Console](https://console.prisma.io/)
 2. Create a new project or use existing one
-3. Open SQL Editor
-4. Run the schema: `database/schema.sql`
-5. Populate with data: `database/seed.sql`
+3. Copy your database connection strings
+4. Run database migrations:
+```bash
+npx prisma migrate dev --name init
+```
 
-### **5. Run Development Server**
+### **5. Seed the Database**
+Populate with sample data:
+```bash
+npx tsx prisma/seed.ts
+```
+
+### **6. Run Development Server**
 ```bash
 npm run dev
 ```
@@ -120,15 +135,18 @@ portfolio-website/
 ├── components/            # React components
 │   ├── bauhaus/          # Bauhaus theme components
 │   ├── professional/     # Professional theme components
-│   └── DataInitializer.tsx # Database data loader
+│   ├── ThemeSwitcher.tsx  # Theme switcher component
+│   └── icons/            # Icon components
 ├── lib/                  # Utility libraries
-│   ├── db.ts             # Database operations
-│   ├── store.ts          # State management
-│   ├── store-new.ts      # Database-backed state
+│   ├── prisma.ts         # Prisma client
+│   ├── prisma-db.ts      # Database operations
+│   ├── store-prisma.ts   # Prisma-backed state
 │   └── utils.ts          # Helper functions
-├── database/             # Database files
-│   ├── schema.sql        # Database schema
-│   └── seed.sql          # Initial data
+├── prisma/               # Prisma files
+│   ├── schema.prisma     # Database schema
+│   ├── migrations/       # Database migrations
+│   ├── seed.ts           # Database seed script
+│   └── config.ts         # Prisma configuration
 ├── public/               # Static assets
 └── styles/               # Global styles
 ```
@@ -188,7 +206,9 @@ The application uses the following tables:
 - `admin_settings` - Admin authentication
 
 ### **Theme Customization**
-Edit `app/globals.css` to customize:
+- **Theme Persistence**: Theme selection is saved to database and persists across sessions
+- **Theme Switcher**: Floating theme switcher available on all pages
+- **Edit CSS Variables**: Customize colors in `app/globals.css`:
 ```css
 :root {
   --primary: #3b82f6;
@@ -202,7 +222,10 @@ Edit `app/globals.css` to customize:
 ### **Vercel Deployment**
 1. Push code to GitHub
 2. Connect repository to Vercel
-3. Add environment variables
+3. Add environment variables:
+   - `DATABASE_URL`
+   - `POSTGRES_URL`
+   - `PRISMA_DATABASE_URL`
 4. Deploy automatically
 
 ### **Manual Deployment**
@@ -212,9 +235,16 @@ npm start
 ```
 
 ### **Database Setup in Production**
-1. Add `DATABASE_URL` to Vercel environment variables
-2. Run schema and seed SQL in Neon Console
-3. Redeploy to activate database
+1. Add Prisma environment variables to Vercel project settings
+2. Run database migrations:
+```bash
+npx prisma migrate deploy
+```
+3. Seed production database (optional):
+```bash
+npx tsx prisma/seed.ts
+```
+4. Redeploy to activate database
 
 ## 📊 API Endpoints
 
@@ -243,27 +273,31 @@ Update portfolio data (admin required)
 
 ### **Adding New Themes**
 1. Create theme CSS in `app/globals.css`
-2. Add theme option to store
+2. Add theme option to Prisma schema
 3. Update theme selector components
+4. Update store to handle new theme
 
 ### **Adding New Sections**
-1. Create database table in `schema.sql`
-2. Add API endpoints in `lib/db.ts`
+1. Create database table in `prisma/schema.prisma`
+2. Add API endpoints in `lib/prisma-db.ts`
 3. Create React components
 4. Add to portfolio layouts
+5. Update store to include new data
 
 ### **Custom Styling**
 - Edit Tailwind config in `tailwind.config.js`
 - Modify CSS variables in `app/globals.css`
 - Update component styles
+- Regenerate Prisma client after schema changes
 
 ## 🔒 Security
 
 - **Admin Authentication**: Password-protected admin area
 - **Environment Variables**: Secure database credentials
-- **SQL Injection Prevention**: Parameterized queries
+- **SQL Injection Prevention**: Prisma's built-in protection
 - **XSS Protection**: React's built-in protections
 - **HTTPS**: Secure connections in production
+- **Type Safety**: Prisma prevents runtime database errors
 
 ## 🤝 Contributing
 
@@ -286,15 +320,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🌟 Features Highlights
 
 - ✅ **Live Demo**: Deployed and working
-- ✅ **Database Integration**: Full Neon PostgreSQL backend
+- ✅ **Database Integration**: Full Prisma Postgres backend
 - ✅ **Admin Panel**: Complete content management
 - ✅ **PDF Export**: Downloadable resumes
 - ✅ **Responsive Design**: Mobile-first approach
 - ✅ **TypeScript**: Type-safe codebase
-- ✅ **Modern Stack**: Next.js 14, React 18
+- ✅ **Modern Stack**: Next.js 14, React 18, Prisma
 - ✅ **SEO Optimized**: Meta tags and structured data
 - ✅ **Performance**: Optimized loading and caching
 - ✅ **Accessibility**: WCAG compliant design
+- ✅ **Theme Persistence**: Theme selection saved to database
+- ✅ **Real-time Data**: Prisma Accelerate for performance
+- ✅ **Type Safety**: Full database type safety
 
 ---
 

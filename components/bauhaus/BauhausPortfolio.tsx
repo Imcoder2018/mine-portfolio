@@ -1,6 +1,6 @@
 'use client'
 
-import { usePortfolioStore } from '@/lib/store-new'
+import { usePortfolioStore } from '@/lib/store-prisma'
 import { Icon } from '@/components/icons'
 import { formatDate, getYouTubeVideoId } from '@/lib/utils'
 import Link from 'next/link'
