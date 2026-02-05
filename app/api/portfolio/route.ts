@@ -9,7 +9,7 @@ import {
   getTestimonials, 
   getServices, 
   getSectionSettings 
-} from '@/lib/db'
+} from '@/lib/prisma-db'
 
 // API route to get all portfolio data
 export async function GET() {
@@ -49,13 +49,13 @@ export async function GET() {
         phone: profile.phone || '',
         location: profile.location,
         bio: profile.bio,
-        shortBio: profile.short_bio,
-        profileImage: profile.profile_image || '',
-        resumeUrl: profile.resume_url || '',
-        availableForHire: profile.available_for_hire,
-        yearsOfExperience: profile.years_of_experience,
-        projectsCompleted: profile.projects_completed,
-        happyClients: profile.happy_clients,
+        shortBio: profile.shortBio,
+        profileImage: profile.profileImage || '',
+        resumeUrl: profile.resumeUrl || '',
+        availableForHire: profile.availableForHire,
+        yearsOfExperience: profile.yearsOfExperience,
+        projectsCompleted: profile.projectsCompleted,
+        happyClients: profile.happyClients,
         theme: profile.theme || 'professional'
       } : null,
       socialLinks: socialLinks.map((link: any) => ({
@@ -77,8 +77,8 @@ export async function GET() {
         title: exp.title,
         company: exp.company,
         location: exp.location,
-        startDate: exp.start_date,
-        endDate: exp.end_date || '',
+        startDate: exp.startDate,
+        endDate: exp.endDate || '',
         current: exp.current,
         description: exp.description || '',
         achievements: exp.achievements || [],
@@ -90,16 +90,16 @@ export async function GET() {
         id: project.id.toString(),
         title: project.title,
         description: project.description,
-        longDescription: project.long_description || '',
+        longDescription: project.longDescription || '',
         technologies: project.technologies || [],
-        imageUrl: project.image_url || '',
-        videoUrl: project.video_url || '',
-        githubUrl: project.github_url || '',
-        liveUrl: project.live_url || '',
+        imageUrl: project.imageUrl || '',
+        videoUrl: project.videoUrl || '',
+        githubUrl: project.githubUrl || '',
+        liveUrl: project.liveUrl || '',
         category: project.category || '',
         featured: project.featured,
-        startDate: project.start_date || '',
-        endDate: project.end_date || '',
+        startDate: project.startDate || '',
+        endDate: project.endDate || '',
         enabled: project.enabled
       })),
       education: education.map((edu: any) => ({
@@ -107,8 +107,8 @@ export async function GET() {
         degree: edu.degree,
         institution: edu.institution,
         location: edu.location,
-        startDate: edu.start_date,
-        endDate: edu.end_date,
+        startDate: edu.startDate,
+        endDate: edu.endDate,
         description: edu.description || '',
         achievements: edu.achievements || [],
         enabled: edu.enabled
@@ -119,7 +119,7 @@ export async function GET() {
         issuer: cert.issuer,
         date: cert.date,
         url: cert.url || '',
-        credentialId: cert.credential_id || '',
+        credentialId: cert.credentialId || '',
         enabled: cert.enabled
       })),
       testimonials: testimonials.map((testimonial: any) => ({
@@ -128,7 +128,7 @@ export async function GET() {
         role: testimonial.role,
         company: testimonial.company,
         content: testimonial.content,
-        imageUrl: testimonial.image_url || '',
+        imageUrl: testimonial.imageUrl || '',
         rating: testimonial.rating,
         enabled: testimonial.enabled
       })),
@@ -147,7 +147,7 @@ export async function GET() {
         skills: sectionSettings.skills,
         experience: sectionSettings.experience,
         projects: sectionSettings.projects,
-        personalProjects: sectionSettings.personal_projects,
+        personalProjects: sectionSettings.personalProjects,
         education: sectionSettings.education,
         certifications: sectionSettings.certifications,
         services: sectionSettings.services,

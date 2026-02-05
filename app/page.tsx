@@ -1,6 +1,6 @@
 'use client'
 
-import { usePortfolioStore } from '@/lib/store-new'
+import { usePortfolioStore } from '@/lib/store-prisma'
 import ProfessionalPortfolio from '@/components/professional/ProfessionalPortfolio'
 import BauhausPortfolio from '@/components/bauhaus/BauhausPortfolio'
 

@@ -27,7 +27,7 @@ import {
   updateSectionSettings,
   updateAdminPassword,
   checkAdminPassword
-} from '@/lib/db'
+} from '@/lib/prisma-db'
 
 export async function POST(request: Request) {
   try {

@@ -1,7 +1,7 @@
 'use client'
 
 import './globals.css'
-import { usePortfolioStore } from '@/lib/store-new'
+import { usePortfolioStore } from '@/lib/store-prisma'
 import DataInitializer from '@/components/DataInitializer'
 
 export default function RootLayout({

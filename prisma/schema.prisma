@@ -1,0 +1,243 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  title               String
+  subtitle            String?
+  email               String
+  phone               String?
+  location            String
+  bio                 String
+  shortBio            String   @map("short_bio")
+  profileImage        String?  @map("profile_image")
+  resumeUrl           String?  @map("resume_url")
+  availableForHire    Boolean  @default(true) @map("available_for_hire")
+  yearsOfExperience   Int      @default(0) @map("years_of_experience")
+  projectsCompleted   Int      @default(0) @map("projects_completed")
+  happyClients        Int      @default(0) @map("happy_clients")
+  theme               String   @default("professional")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  socialLinks         SocialLink[]
+  skills              Skill[]
+  workExperience      WorkExperience[]
+  projects            Project[]
+  education           Education[]
+  certifications       Certification[]
+  testimonials         Testimonial[]
+  services            Service[]
+  sectionSettings     SectionSettings?
+  adminSettings       AdminSettings?
+
+  @@map("profile")
+}
+
+model SocialLink {
+  id        Int      @id @default(autoincrement())
+  platform  String
+  url       String
+  icon      String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("social_links")
+}
+
+model Skill {
+  id        Int      @id @default(autoincrement())
+  name      String
+  category  String
+  level     Int
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("skills")
+}
+
+model WorkExperience {
+  id           Int      @id @default(autoincrement())
+  title        String
+  company      String
+  location     String
+  startDate    String   @map("start_date")
+  endDate      String?  @map("end_date")
+  current      Boolean  @default(false)
+  description  String?
+  achievements String[] @default([])
+  technologies String[] @default([])
+  links        Json?
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("work_experience")
+}
+
+model Project {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String
+  longDescription String?  @map("long_description")
+  technologies    String[] @default([])
+  imageUrl        String?  @map("image_url")
+  videoUrl        String?  @map("video_url")
+  githubUrl       String?  @map("github_url")
+  liveUrl         String?  @map("live_url")
+  category        String?
+  featured        Boolean  @default(false)
+  startDate       String?  @map("start_date")
+  endDate         String?  @map("end_date")
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("projects")
+}
+
+model Education {
+  id           Int      @id @default(autoincrement())
+  degree       String
+  institution  String
+  location     String
+  startDate    String   @map("start_date")
+  endDate      String   @map("end_date")
+  description  String?
+  achievements String[] @default([])
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("education")
+}
+
+model Certification {
+  id            Int      @id @default(autoincrement())
+  name          String
+  issuer        String
+  date          String
+  url           String?
+  credentialId  String?  @map("credential_id")
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("certifications")
+}
+
+model Testimonial {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      String
+  company   String
+  content   String
+  imageUrl  String?  @map("image_url")
+  rating    Int
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("testimonials")
+}
+
+model Service {
+  id        Int      @id @default(autoincrement())
+  title     String
+  description String
+  icon      String
+  features  String[] @default([])
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("services")
+}
+
+model SectionSettings {
+  id                Int      @id @default(autoincrement())
+  hero              Boolean  @default(true)
+  about             Boolean  @default(true)
+  skills            Boolean  @default(true)
+  experience        Boolean  @default(true)
+  projects          Boolean  @default(true)
+  personalProjects  Boolean  @default(true) @map("personal_projects")
+  education         Boolean  @default(true)
+  certifications    Boolean  @default(true)
+  services          Boolean  @default(true)
+  testimonials      Boolean  @default(true)
+  achievements      Boolean  @default(true)
+  languages         Boolean  @default(true)
+  interests         Boolean  @default(true)
+  publications      Boolean  @default(true)
+  awards            Boolean  @default(true)
+  volunteer         Boolean  @default(true)
+  contact           Boolean  @default(true)
+  timeline          Boolean  @default(true)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int @unique
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("section_settings")
+}
+
+model AdminSettings {
+  id               Int      @id @default(autoincrement())
+  adminPassword    String   @default("admin123") @map("admin_password")
+  isAuthenticated  Boolean  @default(false) @map("is_authenticated")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profileId Int @unique
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("admin_settings")
+}

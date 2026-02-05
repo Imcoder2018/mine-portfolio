@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { usePortfolioStore } from '@/lib/store-new'
+import { usePortfolioStore } from '@/lib/store-prisma'
 import { formatDate } from '@/lib/utils'
 import { Mail, Phone, MapPin, Download, Printer, FileText, Palette, ExternalLink, Github } from 'lucide-react'
 import { Icon } from '@/components/icons'
