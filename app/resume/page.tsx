@@ -389,7 +389,7 @@ export default function ResumePage() {
                       Key Projects
                     </h2>
                     <div className="space-y-3">
-                      {enabledProjects.slice(0, 3).map(project => (
+                      {enabledProjects.map(project => (
                         <div key={project.id} className={selectedTheme === 'bauhaus' ? 'border-2 border-black p-3' : ''}>
                           <div className="flex items-start justify-between gap-2">
                             <h3 className={selectedTheme === 'bauhaus' ? 'font-black text-gray-900' : 'font-semibold text-gray-900'}>{project.title}</h3>

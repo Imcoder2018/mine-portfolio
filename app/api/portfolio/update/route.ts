@@ -1,3 +1,4 @@
+import { auth } from '@clerk/nextjs/server'
 import { 
   updateProfile, 
   updateTheme,
@@ -13,6 +14,7 @@ import {
   addProject,
   updateProject,
   deleteProject,
+  reorderProjects,
   addEducation,
   updateEducation,
   deleteEducation,
@@ -26,42 +28,38 @@ import {
   updateService,
   deleteService,
   updateSectionSettings,
-  updateAdminPassword,
-  checkAdminPassword
 } from '@/lib/prisma-db'
 
 export async function POST(request: Request) {
   try {
+    // Require Clerk authentication for all write operations
+    const { userId } = await auth()
+    if (!userId) {
+      return Response.json(
+        { error: 'Unauthorized - please sign in' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { action, data, id } = body
-
-    // Check admin authentication for write operations (except theme switching)
-    if (action !== 'login' && action !== 'checkAuth' && action !== 'updateTheme') {
-      const isAuthenticated = await checkAdminPassword(data.adminPassword || '')
-      if (!isAuthenticated) {
-        return Response.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        )
-      }
-    }
 
     let result
 
     switch (action) {
-      // Theme (public operation)
+      // Theme
       case 'updateTheme':
-        result = await updateTheme(data.theme)
+        result = await updateTheme(userId, data.theme)
         break
 
       // Profile
       case 'updateProfile':
-        result = await updateProfile(data)
+        result = await updateProfile(userId, data)
         break
 
       // Social Links
       case 'addSocialLink':
-        result = await addSocialLink(data)
+        result = await addSocialLink(userId, data)
         break
       case 'updateSocialLink':
         result = await updateSocialLink(id, data)
@@ -73,7 +71,7 @@ export async function POST(request: Request) {
 
       // Skills
       case 'addSkill':
-        result = await addSkill(data)
+        result = await addSkill(userId, data)
         break
       case 'updateSkill':
         result = await updateSkill(id, data)
@@ -85,7 +83,7 @@ export async function POST(request: Request) {
 
       // Work Experience
       case 'addWorkExperience':
-        result = await addWorkExperience(data)
+        result = await addWorkExperience(userId, data)
         break
       case 'updateWorkExperience':
         result = await updateWorkExperience(id, data)
@@ -97,7 +95,7 @@ export async function POST(request: Request) {
 
       // Projects
       case 'addProject':
-        result = await addProject(data)
+        result = await addProject(userId, data)
         break
       case 'updateProject':
         result = await updateProject(id, data)
@@ -106,10 +104,14 @@ export async function POST(request: Request) {
         await deleteProject(id)
         result = { success: true }
         break
+      case 'reorderProjects':
+        await reorderProjects(userId, data.oldIndex, data.newIndex)
+        result = { success: true }
+        break
 
       // Education
       case 'addEducation':
-        result = await addEducation(data)
+        result = await addEducation(userId, data)
         break
       case 'updateEducation':
         result = await updateEducation(id, data)
@@ -121,7 +123,7 @@ export async function POST(request: Request) {
 
       // Certifications
       case 'addCertification':
-        result = await addCertification(data)
+        result = await addCertification(userId, data)
         break
       case 'updateCertification':
         result = await updateCertification(id, data)
@@ -133,7 +135,7 @@ export async function POST(request: Request) {
 
       // Testimonials
       case 'addTestimonial':
-        result = await addTestimonial(data)
+        result = await addTestimonial(userId, data)
         break
       case 'updateTestimonial':
         result = await updateTestimonial(id, data)
@@ -145,7 +147,7 @@ export async function POST(request: Request) {
 
       // Services
       case 'addService':
-        result = await addService(data)
+        result = await addService(userId, data)
         break
       case 'updateService':
         result = await updateService(id, data)
@@ -157,21 +159,7 @@ export async function POST(request: Request) {
 
       // Section Settings
       case 'updateSectionSettings':
-        result = await updateSectionSettings(data)
-        break
-
-      // Admin
-      case 'updateAdminPassword':
-        await updateAdminPassword(data.newPassword)
-        result = { success: true }
-        break
-      case 'login':
-        const isValid = await checkAdminPassword(data.password)
-        result = { success: isValid }
-        break
-      case 'checkAuth':
-        const authValid = await checkAdminPassword(data.password)
-        result = { authenticated: authValid }
+        result = await updateSectionSettings(userId, data)
         break
 
       default:

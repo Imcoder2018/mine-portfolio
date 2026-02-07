@@ -11,6 +11,7 @@ datasource db {
 
 model Profile {
   id                  Int      @id @default(autoincrement())
+  clerkUserId         String?  @unique @map("clerk_user_id")
   name                String
   title               String
   subtitle            String?

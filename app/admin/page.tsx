@@ -3,71 +3,35 @@
 import { useState, useEffect } from 'react'
 import { usePortfolioStore, generateId, SectionSettings } from '@/lib/store-prisma'
 import { Icon, Save, Plus, Trash2, Edit, Eye, EyeOff, LogOut, Settings, User, Briefcase, Code, GraduationCap, Award, MessageSquare, Zap, Globe, Lock } from '@/components/icons'
+import { UserButton, useUser } from '@clerk/nextjs'
 import Link from 'next/link'
+import SortableContainer from '@/components/SortableContainer'
 
 export default function AdminPage() {
-  const [isClient, setIsClient] = useState(false)
-  const { isAdminAuthenticated, login, logout } = usePortfolioStore()
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const { isLoaded, user } = useUser()
+  const fetchData = usePortfolioStore((state) => state.fetchData)
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-      <div className="text-white">Loading...</div>
-    </div>
-  }
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    const success = login(password)
-    if (!success) {
-      setError('Invalid password')
-    } else {
-      setError('')
+    if (isLoaded && user) {
+      fetchData()
     }
-  }
+  }, [isLoaded, user, fetchData])
 
-  if (!isAdminAuthenticated) {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="bg-slate-800 p-8 rounded-2xl border border-slate-700 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="text-primary" size={32} />
-            </div>
-            <h1 className="text-2xl font-bold text-white">Admin Portal</h1>
-            <p className="text-gray-400 mt-2">Enter password to access</p>
-          </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="form-label">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="form-input"
-                placeholder="Enter admin password"
-              />
-            </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-primary to-secondary text-white font-medium py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Login
-            </button>
-          </form>
-          <p className="text-gray-500 text-xs text-center mt-4">Default password: admin123</p>
-          <div className="mt-6 text-center">
-            <Link href="/" className="text-primary hover:text-secondary text-sm">
-              ← Back to Portfolio
-            </Link>
-          </div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
         </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-gray-400">Redirecting to sign in...</div>
       </div>
     )
   }
@@ -77,7 +41,7 @@ export default function AdminPage() {
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('profile')
-  const { logout, profile, setTheme, isLoading } = usePortfolioStore()
+  const { profile, setTheme, isLoading } = usePortfolioStore()
 
   // Show loading if profile not loaded yet
   if (isLoading || !profile) {
@@ -148,13 +112,10 @@ function AdminDashboard() {
             <Eye size={18} />
             View Portfolio
           </Link>
-          <button
-            onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-all"
-          >
-            <LogOut size={18} />
-            Logout
-          </button>
+          <div className="flex items-center justify-center gap-2 px-4 py-2">
+            <UserButton afterSignOutUrl="/" />
+            <span className="text-gray-400 text-sm">Account</span>
+          </div>
         </div>
       </div>
 
@@ -583,7 +544,7 @@ function ExperienceForm({ experience, onSave, onCancel }: { experience: any; onS
 }
 
 function ProjectsEditor() {
-  const { projects, addProject, updateProject, deleteProject } = usePortfolioStore()
+  const { projects, addProject, updateProject, deleteProject, reorderProjects } = usePortfolioStore()
   const [editingId, setEditingId] = useState<string | null>(null)
 
   const handleAdd = () => {
@@ -620,59 +581,60 @@ function ProjectsEditor() {
         </button>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        {projects.map((project) => (
-          <div key={project.id} className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-            {editingId === project.id ? (
-              <ProjectForm
-                project={project}
-                onSave={(data) => {
-                  updateProject(project.id, data)
-                  setEditingId(null)
-                }}
-                onCancel={() => setEditingId(null)}
-              />
-            ) : (
-              <div>
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-white">{project.title}</h3>
-                      {project.featured && (
-                        <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-500 text-xs rounded">Featured</span>
-                      )}
-                      {!project.enabled && (
-                        <span className="px-2 py-0.5 bg-gray-600 text-gray-300 text-xs rounded">Hidden</span>
-                      )}
+      <SortableContainer
+        items={projects.map(p => ({ id: p.id, enabled: p.enabled }))}
+        onReorder={reorderProjects}
+        onToggle={(id) => {
+          const project = projects.find(p => p.id === id)
+          if (project) {
+            updateProject(id, { enabled: !project.enabled })
+          }
+        }}
+        onDelete={deleteProject}
+      >
+        {(item) => {
+          const project = projects.find(p => p.id === item.id)!
+          return (
+            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+              {editingId === project.id ? (
+                <ProjectForm
+                  project={project}
+                  onSave={(data) => {
+                    updateProject(project.id, data)
+                    setEditingId(null)
+                  }}
+                  onCancel={() => setEditingId(null)}
+                />
+              ) : (
+                <div>
+                  <div className="flex items-start justify-between mb-4 pr-20">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-white">{project.title}</h3>
+                        {project.featured && (
+                          <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-500 text-xs rounded">Featured</span>
+                        )}
+                        {!project.enabled && (
+                          <span className="px-2 py-0.5 bg-gray-600 text-gray-300 text-xs rounded">Hidden</span>
+                        )}
+                      </div>
+                      <p className="text-gray-400 text-sm">{project.description}</p>
                     </div>
-                    <p className="text-gray-400 text-sm">{project.description}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setEditingId(project.id)}
+                      className="p-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-all"
+                    >
+                      <Edit size={18} />
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => updateProject(project.id, { enabled: !project.enabled })}
-                    className={`p-2 rounded-lg transition-all ${project.enabled ? 'bg-green-500/20 text-green-500' : 'bg-slate-700 text-gray-400'}`}
-                  >
-                    {project.enabled ? <Eye size={18} /> : <EyeOff size={18} />}
-                  </button>
-                  <button
-                    onClick={() => setEditingId(project.id)}
-                    className="p-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-all"
-                  >
-                    <Edit size={18} />
-                  </button>
-                  <button
-                    onClick={() => deleteProject(project.id)}
-                    className="p-2 bg-red-500/20 text-red-500 rounded-lg hover:bg-red-500/30 transition-all"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+              )}
+            </div>
+          )
+        }}
+      </SortableContainer>
     </div>
   )
 }

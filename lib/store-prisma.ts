@@ -144,8 +144,6 @@ interface PortfolioStore {
   testimonials: Testimonial[]
   services: Service[]
   sectionSettings: SectionSettings | null
-  isAdminAuthenticated: boolean
-  adminPassword: string
   isLoading: boolean
   error: string | null
   
@@ -163,6 +161,7 @@ interface PortfolioStore {
   addSkill: (skill: Skill) => Promise<void>
   updateSkill: (id: string, skill: Partial<Skill>) => Promise<void>
   deleteSkill: (id: string) => Promise<void>
+  reorderSkills: (oldIndex: number, newIndex: number) => Promise<void>
   
   // Work Experience
   addWorkExperience: (exp: WorkExperience) => Promise<void>
@@ -173,6 +172,7 @@ interface PortfolioStore {
   addProject: (project: Project) => Promise<void>
   updateProject: (id: string, project: Partial<Project>) => Promise<void>
   deleteProject: (id: string) => Promise<void>
+  reorderProjects: (oldIndex: number, newIndex: number) => Promise<void>
   
   // Education
   addEducation: (edu: Education) => Promise<void>
@@ -197,11 +197,6 @@ interface PortfolioStore {
   // Section Settings
   toggleSection: (section: keyof SectionSettings) => Promise<void>
   setSectionSettings: (settings: Partial<SectionSettings>) => Promise<void>
-  
-  // Admin
-  login: (password: string) => Promise<boolean>
-  logout: () => void
-  setAdminPassword: (password: string) => Promise<void>
 }
 
 // Default values for fallback
@@ -276,8 +271,6 @@ export const usePortfolioStore = create<PortfolioStore>()(
       testimonials: [],
       services: [],
       sectionSettings: null,
-      isAdminAuthenticated: false,
-      adminPassword: 'admin123',
       isLoading: false,
       error: null,
 
@@ -348,16 +341,11 @@ export const usePortfolioStore = create<PortfolioStore>()(
 
       setTheme: async (theme) => {
         const currentProfile = get().profile
-        console.log('setTheme called with:', theme, 'currentProfile:', currentProfile)
-        if (!currentProfile) {
-          console.log('No current profile, returning')
-          return
-        }
+        if (!currentProfile) return
         
         try {
           await apiCall('updateTheme', { theme })
           const updatedProfile = { ...currentProfile, theme }
-          console.log('Updating local profile to:', updatedProfile)
           set({ profile: updatedProfile })
         } catch (error) {
           console.error('Error in setTheme:', error)
@@ -406,6 +394,17 @@ export const usePortfolioStore = create<PortfolioStore>()(
         }))
       },
 
+      reorderSkills: async (oldIndex, newIndex) => {
+        set((state) => {
+          const newSkills = [...state.skills]
+          const [moved] = newSkills.splice(oldIndex, 1)
+          newSkills.splice(newIndex, 0, moved)
+          return { skills: newSkills }
+        })
+        
+        await apiCall('reorderSkills', { oldIndex, newIndex })
+      },
+
       // Work Experience
       addWorkExperience: async (exp) => {
         const result = await apiCall('addWorkExperience', exp)
@@ -446,6 +445,18 @@ export const usePortfolioStore = create<PortfolioStore>()(
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id)
         }))
+      },
+
+      reorderProjects: async (oldIndex, newIndex) => {
+        set((state) => {
+          const newProjects = [...state.projects]
+          const [moved] = newProjects.splice(oldIndex, 1)
+          newProjects.splice(newIndex, 0, moved)
+          return { projects: newProjects }
+        })
+        
+        // Update order in database via API
+        await apiCall('reorderProjects', { oldIndex, newIndex })
       },
 
       // Education
@@ -551,36 +562,10 @@ export const usePortfolioStore = create<PortfolioStore>()(
         set({ sectionSettings: updatedSettings })
       },
 
-      // Admin
-      login: async (password) => {
-        try {
-          const result = await apiCall('login', { password })
-          if (result.success) {
-            set({ isAdminAuthenticated: true })
-            return true
-          }
-          return false
-        } catch (error) {
-          console.error('Login error:', error)
-          return false
-        }
-      },
-
-      logout: () => {
-        set({ isAdminAuthenticated: false })
-      },
-
-      setAdminPassword: async (password) => {
-        await apiCall('updateAdminPassword', { newPassword: password })
-        set({ adminPassword: password })
-      },
     }),
     {
       name: 'portfolio-storage',
-      partialize: (state) => ({
-        isAdminAuthenticated: state.isAdminAuthenticated,
-        adminPassword: state.adminPassword,
-      }),
+      partialize: () => ({}),
     }
   )
 )

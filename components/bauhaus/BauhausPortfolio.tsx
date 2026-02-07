@@ -282,7 +282,7 @@ export default function BauhausPortfolio() {
                   <h3 className="font-black text-lg">KEY PROJECTS</h3>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {enabledProjects.slice(0, 4).map((project, i) => {
+                  {enabledProjects.map((project, i) => {
                     const videoId = project.videoUrl ? getYouTubeVideoId(project.videoUrl) : null
                     return (
                       <div key={project.id} className="border-2 border-black overflow-hidden">

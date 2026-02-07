@@ -1,9 +1,39 @@
 import { prisma } from '@/lib/prisma'
 
+// Helper: get or create a profile for a Clerk user
+export async function getProfileForUser(clerkUserId: string) {
+  let profile = await prisma.profile.findUnique({
+    where: { clerkUserId },
+  })
+  if (!profile) {
+    profile = await prisma.profile.create({
+      data: {
+        clerkUserId,
+        name: 'My Portfolio',
+        title: 'Developer',
+        subtitle: '',
+        email: '',
+        phone: '',
+        location: '',
+        bio: '',
+        shortBio: '',
+        theme: 'professional',
+      },
+    })
+    // Also create default section settings
+    await prisma.sectionSettings.create({
+      data: { profileId: profile.id },
+    })
+  }
+  return profile
+}
+
 // Profile operations
-export async function getProfile() {
+export async function getProfile(clerkUserId?: string) {
   try {
+    const where = clerkUserId ? { clerkUserId } : undefined
     const profile = await prisma.profile.findFirst({
+      where,
       include: {
         socialLinks: true,
         skills: true,
@@ -24,90 +54,43 @@ export async function getProfile() {
   }
 }
 
-export async function updateProfile(data: any) {
+export async function updateProfile(clerkUserId: string, data: any) {
   try {
-    const existing = await prisma.profile.findFirst()
-    
-    if (existing) {
-      return await prisma.profile.update({
-        where: { id: existing.id },
-        data: {
-          name: data.name,
-          title: data.title,
-          subtitle: data.subtitle,
-          email: data.email,
-          phone: data.phone,
-          location: data.location,
-          bio: data.bio,
-          shortBio: data.shortBio,
-          profileImage: data.profileImage,
-          resumeUrl: data.resumeUrl,
-          availableForHire: data.availableForHire,
-          yearsOfExperience: data.yearsOfExperience,
-          projectsCompleted: data.projectsCompleted,
-          happyClients: data.happyClients,
-          theme: data.theme,
-        },
-      })
-    } else {
-      return await prisma.profile.create({
-        data: {
-          name: data.name,
-          title: data.title,
-          subtitle: data.subtitle,
-          email: data.email,
-          phone: data.phone,
-          location: data.location,
-          bio: data.bio,
-          shortBio: data.shortBio,
-          profileImage: data.profileImage,
-          resumeUrl: data.resumeUrl,
-          availableForHire: data.availableForHire,
-          yearsOfExperience: data.yearsOfExperience,
-          projectsCompleted: data.projectsCompleted,
-          happyClients: data.happyClients,
-          theme: data.theme,
-        },
-      })
-    }
+    const profile = await getProfileForUser(clerkUserId)
+    return await prisma.profile.update({
+      where: { id: profile.id },
+      data: {
+        name: data.name,
+        title: data.title,
+        subtitle: data.subtitle,
+        email: data.email,
+        phone: data.phone,
+        location: data.location,
+        bio: data.bio,
+        shortBio: data.shortBio,
+        profileImage: data.profileImage,
+        resumeUrl: data.resumeUrl,
+        availableForHire: data.availableForHire,
+        yearsOfExperience: data.yearsOfExperience,
+        projectsCompleted: data.projectsCompleted,
+        happyClients: data.happyClients,
+        theme: data.theme,
+      },
+    })
   } catch (error) {
     console.error('Error updating profile:', error)
     throw error
   }
 }
 
-// Theme operations (public - no authentication required)
-export async function updateTheme(theme: string) {
+// Theme operations
+export async function updateTheme(clerkUserId: string, theme: string) {
   try {
-    const existing = await prisma.profile.findFirst()
-    
-    if (existing) {
-      return await prisma.profile.update({
-        where: { id: existing.id },
-        data: { theme },
-      })
-    } else {
-      // Create a new profile with default values and the selected theme
-      return await prisma.profile.create({
-        data: {
-          name: 'Portfolio',
-          title: 'Developer',
-          subtitle: '',
-          email: '',
-          phone: '',
-          location: '',
-          bio: '',
-          shortBio: '',
-          profileImage: '',
-          resumeUrl: '',
-          availableForHire: false,
-          yearsOfExperience: 0,
-          projectsCompleted: 0,
-          happyClients: 0,
-          theme,
-        },
-      })
-    }
+    const profile = await getProfileForUser(clerkUserId)
+    return await prisma.profile.update({
+      where: { id: profile.id },
+      data: { theme },
+    })
   } catch (error) {
     console.error('Error updating theme:', error)
     throw error
@@ -126,15 +109,16 @@ export async function getSocialLinks() {
   }
 }
 
-export async function addSocialLink(data: any) {
+export async function addSocialLink(clerkUserId: string, data: any) {
   try {
+    const profile = await getProfileForUser(clerkUserId)
     return await prisma.socialLink.create({
       data: {
         platform: data.platform,
         url: data.url,
         icon: data.icon,
         enabled: data.enabled,
-        profileId: 1, // Assuming first profile
+        profileId: profile.id,
       },
     })
   } catch (error) {
@@ -183,15 +167,16 @@ export async function getSkills() {
   }
 }
 
-export async function addSkill(data: any) {
+export async function addSkill(clerkUserId: string, data: any) {
   try {
+    const profile = await getProfileForUser(clerkUserId)
     return await prisma.skill.create({
       data: {
         name: data.name,
         category: data.category,
         level: data.level,
         enabled: data.enabled,
-        profileId: 1,
+        profileId: profile.id,
       },
     })
   } catch (error) {
@@ -240,8 +225,9 @@ export async function getWorkExperience() {
   }
 }
 
-export async function addWorkExperience(data: any) {
+export async function addWorkExperience(clerkUserId: string, data: any) {
   try {
+    const profile = await getProfileForUser(clerkUserId)
     return await prisma.workExperience.create({
       data: {
         title: data.title,
@@ -255,7 +241,7 @@ export async function addWorkExperience(data: any) {
         technologies: data.technologies,
         links: data.links,
         enabled: data.enabled,
-        profileId: 1,
+        profileId: profile.id,
       },
     })
   } catch (error) {
@@ -311,8 +297,9 @@ export async function getProjects() {
   }
 }
 
-export async function addProject(data: any) {
+export async function addProject(clerkUserId: string, data: any) {
   try {
+    const profile = await getProfileForUser(clerkUserId)
     return await prisma.project.create({
       data: {
         title: data.title,
@@ -328,7 +315,7 @@ export async function addProject(data: any) {
         startDate: data.startDate,
         endDate: data.endDate,
         enabled: data.enabled,
-        profileId: 1,
+        profileId: profile.id,
       },
     })
   } catch (error) {
@@ -366,10 +353,40 @@ export async function updateProject(id: string, data: any) {
 export async function deleteProject(id: string) {
   try {
     await prisma.project.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id) }
     })
   } catch (error) {
     console.error('Error deleting project:', error)
+    throw error
+  }
+}
+
+export async function reorderProjects(clerkUserId: string, oldIndex: number, newIndex: number) {
+  try {
+    const profile = await getProfileForUser(clerkUserId)
+    const projects = await prisma.project.findMany({
+      where: { profileId: profile.id },
+      orderBy: { createdAt: 'asc' }
+    })
+    
+    // Reorder the projects array
+    const [moved] = projects.splice(oldIndex, 1)
+    projects.splice(newIndex, 0, moved)
+    
+    // Update the order by updating timestamps to maintain order
+    // This is a simple approach - for a more robust solution, add an 'order' field
+    const updates = projects.map((project, index) => 
+      prisma.project.update({
+        where: { id: project.id },
+        data: { 
+          createdAt: new Date(Date.now() - index * 1000) // Stagger timestamps to maintain order
+        }
+      })
+    )
+    
+    await Promise.all(updates)
+  } catch (error) {
+    console.error('Error reordering projects:', error)
     throw error
   }
 }
@@ -386,8 +403,9 @@ export async function getEducation() {
   }
 }
 
-export async function addEducation(data: any) {
+export async function addEducation(clerkUserId: string, data: any) {
   try {
+    const profile = await getProfileForUser(clerkUserId)
     return await prisma.education.create({
       data: {
         degree: data.degree,
@@ -398,7 +416,7 @@ export async function addEducation(data: any) {
         description: data.description,
         achievements: data.achievements,
         enabled: data.enabled,
-        profileId: 1,
+        profileId: profile.id,
       },
     })
   } catch (error) {
@@ -451,8 +469,9 @@ export async function getCertifications() {
   }
 }
 
-export async function addCertification(data: any) {
+export async function addCertification(clerkUserId: string, data: any) {
   try {
+    const profile = await getProfileForUser(clerkUserId)
     return await prisma.certification.create({
       data: {
         name: data.name,
@@ -461,7 +480,7 @@ export async function addCertification(data: any) {
         url: data.url,
         credentialId: data.credentialId,
         enabled: data.enabled,
-        profileId: 1,
+        profileId: profile.id,
       },
     })
   } catch (error) {
@@ -512,8 +531,9 @@ export async function getTestimonials() {
   }
 }
 
-export async function addTestimonial(data: any) {
+export async function addTestimonial(clerkUserId: string, data: any) {
   try {
+    const profile = await getProfileForUser(clerkUserId)
     return await prisma.testimonial.create({
       data: {
         name: data.name,
@@ -523,7 +543,7 @@ export async function addTestimonial(data: any) {
         imageUrl: data.imageUrl,
         rating: data.rating,
         enabled: data.enabled,
-        profileId: 1,
+        profileId: profile.id,
       },
     })
   } catch (error) {
@@ -575,8 +595,9 @@ export async function getServices() {
   }
 }
 
-export async function addService(data: any) {
+export async function addService(clerkUserId: string, data: any) {
   try {
+    const profile = await getProfileForUser(clerkUserId)
     return await prisma.service.create({
       data: {
         title: data.title,
@@ -584,7 +605,7 @@ export async function addService(data: any) {
         icon: data.icon,
         features: data.features,
         enabled: data.enabled,
-        profileId: 1,
+        profileId: profile.id,
       },
     })
   } catch (error) {
@@ -632,104 +653,49 @@ export async function getSectionSettings() {
   }
 }
 
-export async function updateSectionSettings(data: any) {
+export async function updateSectionSettings(clerkUserId: string, data: any) {
   try {
-    const existing = await prisma.sectionSettings.findFirst()
+    const profile = await getProfileForUser(clerkUserId)
+    const existing = await prisma.sectionSettings.findUnique({
+      where: { profileId: profile.id },
+    })
     
+    const settingsData = {
+      hero: data.hero,
+      about: data.about,
+      skills: data.skills,
+      experience: data.experience,
+      projects: data.projects,
+      personalProjects: data.personalProjects,
+      education: data.education,
+      certifications: data.certifications,
+      services: data.services,
+      testimonials: data.testimonials,
+      achievements: data.achievements,
+      languages: data.languages,
+      interests: data.interests,
+      publications: data.publications,
+      awards: data.awards,
+      volunteer: data.volunteer,
+      contact: data.contact,
+      timeline: data.timeline,
+    }
+
     if (existing) {
       return await prisma.sectionSettings.update({
         where: { id: existing.id },
-        data: {
-          hero: data.hero,
-          about: data.about,
-          skills: data.skills,
-          experience: data.experience,
-          projects: data.projects,
-          personalProjects: data.personalProjects,
-          education: data.education,
-          certifications: data.certifications,
-          services: data.services,
-          testimonials: data.testimonials,
-          achievements: data.achievements,
-          languages: data.languages,
-          interests: data.interests,
-          publications: data.publications,
-          awards: data.awards,
-          volunteer: data.volunteer,
-          contact: data.contact,
-          timeline: data.timeline,
-        },
+        data: settingsData,
       })
     } else {
       return await prisma.sectionSettings.create({
         data: {
-          hero: data.hero,
-          about: data.about,
-          skills: data.skills,
-          experience: data.experience,
-          projects: data.projects,
-          personalProjects: data.personalProjects,
-          education: data.education,
-          certifications: data.certifications,
-          services: data.services,
-          testimonials: data.testimonials,
-          achievements: data.achievements,
-          languages: data.languages,
-          interests: data.interests,
-          publications: data.publications,
-          awards: data.awards,
-          volunteer: data.volunteer,
-          contact: data.contact,
-          timeline: data.timeline,
-          profileId: 1,
+          ...settingsData,
+          profileId: profile.id,
         },
       })
     }
   } catch (error) {
     console.error('Error updating section settings:', error)
     throw error
-  }
-}
-
-// Admin operations
-export async function getAdminSettings() {
-  try {
-    return await prisma.adminSettings.findFirst()
-  } catch (error) {
-    console.error('Error fetching admin settings:', error)
-    return null
-  }
-}
-
-export async function updateAdminPassword(password: string) {
-  try {
-    const existing = await prisma.adminSettings.findFirst()
-    
-    if (existing) {
-      return await prisma.adminSettings.update({
-        where: { id: existing.id },
-        data: { adminPassword: password },
-      })
-    } else {
-      return await prisma.adminSettings.create({
-        data: {
-          adminPassword: password,
-          profileId: 1,
-        },
-      })
-    }
-  } catch (error) {
-    console.error('Error updating admin password:', error)
-    throw error
-  }
-}
-
-export async function checkAdminPassword(password: string) {
-  try {
-    const settings = await prisma.adminSettings.findFirst()
-    return settings?.adminPassword === password
-  } catch (error) {
-    console.error('Error checking admin password:', error)
-    return false
   }
 }

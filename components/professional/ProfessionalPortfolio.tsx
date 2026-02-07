@@ -259,7 +259,7 @@ export default function ProfessionalPortfolio() {
                   <Code size={18} className="text-primary" /> Key Projects
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {enabledProjects.slice(0, 4).map(project => {
+                  {enabledProjects.map(project => {
                     const videoId = project.videoUrl ? getYouTubeVideoId(project.videoUrl) : null
                     return (
                       <div key={project.id} className="bg-slate-700/50 rounded-lg overflow-hidden border border-slate-600">

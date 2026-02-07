@@ -1,42 +1,36 @@
-import { 
-  getProfile, 
-  getSocialLinks, 
-  getSkills, 
-  getWorkExperience, 
-  getProjects, 
-  getEducation, 
-  getCertifications, 
-  getTestimonials, 
-  getServices, 
-  getSectionSettings 
-} from '@/lib/prisma-db'
+import { auth } from '@clerk/nextjs/server'
+import { getProfile, getProfileForUser } from '@/lib/prisma-db'
 
 // API route to get all portfolio data
 export async function GET() {
   try {
-    const [
-      profile,
-      socialLinks,
-      skills,
-      workExperience,
-      projects,
-      education,
-      certifications,
-      testimonials,
-      services,
-      sectionSettings
-    ] = await Promise.all([
-      getProfile(),
-      getSocialLinks(),
-      getSkills(),
-      getWorkExperience(),
-      getProjects(),
-      getEducation(),
-      getCertifications(),
-      getTestimonials(),
-      getServices(),
-      getSectionSettings()
-    ])
+    // Check if user is authenticated - load their profile; otherwise load default
+    let clerkUserId: string | undefined
+    try {
+      const authResult = await auth()
+      clerkUserId = authResult.userId ?? undefined
+    } catch {
+      // Not authenticated - will load default profile
+    }
+
+    // If authenticated, ensure profile exists for this user
+    if (clerkUserId) {
+      await getProfileForUser(clerkUserId)
+    }
+
+    // getProfile with includes fetches all related data
+    const profile = await getProfile(clerkUserId)
+
+    // Use included relations from profile (getProfile uses include)
+    const socialLinks = (profile as any)?.socialLinks || []
+    const skills = (profile as any)?.skills || []
+    const workExperience = (profile as any)?.workExperience || []
+    const projects = (profile as any)?.projects || []
+    const education = (profile as any)?.education || []
+    const certifications = (profile as any)?.certifications || []
+    const testimonials = (profile as any)?.testimonials || []
+    const services = (profile as any)?.services || []
+    const sectionSettings = (profile as any)?.sectionSettings || null
 
     // Transform database data to match frontend interface
     const transformedData = {
